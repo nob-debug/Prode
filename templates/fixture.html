@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fixture Mundial - Bracket</title>
+    <!-- Incluir CSS original -->
+    <link href="/static/css/style.css" rel="stylesheet">
+    <!-- Incluir HTMX desde CDN -->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #1a1a1a;
+            color: white;
+            overflow-x: hidden;
+            /* Changed from auto to prevent sidebar issues */
+        }
+
+        /* Nav styles - REPLACED BY TOP APP BAR */
+        .top-app-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: linear-gradient(90deg, #021F59 0%, #102a68 100%);
+            color: white;
+            padding: 8px 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1001;
+            height: 65px;
+            box-sizing: border-box;
+        }
+
+        .top-app-bar-left,
+        .top-app-bar-right {
+            display: flex;
+            align-items: center;
+            flex: 1;
+        }
+
+        .top-app-bar-right {
+            justify-content: flex-end;
+        }
+
+        .top-app-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin: 0;
+            white-space: nowrap;
+        }
+
+        .menu-trigger-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            margin-right: 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        .volver-btn {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .volver-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-1px);
+        }
+
+        /* Sidebar & Layout */
+        .app-layout {
+            display: flex;
+            width: 100%;
+        }
+
+        .sidebar {
+            width: 280px;
+            height: 100vh;
+            background: white;
+            color: #1a202c;
+            position: fixed;
+            left: -280px;
+            top: 0;
+            z-index: 2000;
+            transition: left 0.3s ease;
+            box-shadow: 4px 0 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .sidebar.open {
+            left: 0;
+        }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1999;
+            backdrop-filter: blur(3px);
+        }
+
+        .sidebar-overlay.open {
+            display: block;
+        }
+
+        .sidebar-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        .sidebar-nav a {
+            text-decoration: none;
+            color: #4a5568;
+            padding: 12px 15px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .sidebar-nav a:hover,
+        .sidebar-nav a.active {
+            background: #ebf8ff;
+            color: #102a68;
+        }
+
+        .user-card {
+            background: #f7fafc;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 1px solid #edf2f7;
+            text-align: center;
+        }
+
+        .user-avatar {
+            font-size: 2.5rem;
+            margin-bottom: 5px;
+        }
+
+        .user-name {
+            font-weight: 800;
+            color: #102a68;
+            font-size: 1.1rem;
+        }
+
+        .stat-badge {
+            font-size: 0.8rem;
+            background: #fff;
+            padding: 4px 10px;
+            border-radius: 15px;
+            margin: 5px;
+            display: inline-block;
+            border: 1px solid #e2e8f0;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #718096;
+        }
+
+        /* Grass Background */
+        .split-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            background: linear-gradient(90deg,
+                    var(--grass-dark) 50%,
+                    var(--grass-light) 50%);
+            background-size: 10% 100%;
+        }
+
+        /* Bracket Layout Container */
+        .bracket-container {
+            width: 1500px;
+            /* Wider to prevent squishing */
+            margin: 100px auto 50px auto;
+            position: relative;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        /* Groups Row (Top & Bottom) */
+        .groups-row {
+            display: none;
+            /* Hide for now as requested by user */
+            justify-content: space-between;
+            padding: 0 50px;
+            margin-bottom: 20px;
+        }
+
+        .groups-row.bottom {
+            margin-bottom: 0;
+            margin-top: 20px;
+        }
+
+        .group-box {
+            background: #abf115;
+            /* Bright lime green */
+            border-radius: 8px;
+            padding: 10px;
+            color: #1a4ee8;
+            font-weight: 900;
+            text-align: center;
+            width: 120px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            text-transform: uppercase;
+            font-size: 0.85rem;
+        }
+
+        .group-flags {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5px;
+            margin-bottom: 5px;
+        }
+
+        .flag {
+            background: white;
+            border-radius: 4px;
+            padding: 2px;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Groups Master Card New Design */
+        .groups-master-card {
+            margin-top: 100px;
+            background: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(5px);
+            padding: 40px;
+            border-radius: 16px;
+            width: 100%;
+            box-sizing: border-box;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .groups-master-title {
+            color: #0b1c46;
+            text-align: center;
+            text-transform: uppercase;
+            font-size: 2.5rem;
+            margin-bottom: 40px;
+            margin-top: 0;
+            text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.5);
+            font-weight: 900;
+        }
+
+        .groups-grid-wrapper {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 10px;
+            justify-items: center;
+        }
+
+        .group-card {
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 8px;
+            /* Slightly tighter border */
+            padding: 4px;
+            /* Tighter padding */
+            color: #102a68;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            width: 100px;
+            /* Reduced as requested */
+            height: 155px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .group-title {
+            text-align: center;
+            font-size: 0.85rem;
+            margin-bottom: 5px;
+            border-bottom: 2px solid rgba(0, 0, 0, 0.1);
+            padding-bottom: 3px;
+            text-transform: uppercase;
+        }
+
+        .team-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 3px;
+            font-size: 0.75rem;
+        }
+
+        .team-row .flag-icon {
+            margin-right: 4px;
+            font-size: 1rem;
+        }
+
+        .world-champions-title {
+            font-size: 2.2rem;
+            text-transform: uppercase;
+            font-weight: 900;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
+            text-align: center;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .winner-box-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 10px 0 80px 0;
+            z-index: 10;
+        }
+
+        .bronze-winner-title {
+            font-weight: bold;
+            text-transform: uppercase;
+            color: white;
+            text-align: center;
+            font-size: 1.5rem;
+            width: 100%;
+            margin-top: 20px;
+            margin-bottom: 15px;
+        }
+
+        .winner-box {
+            background: white;
+            color: #102a68;
+            border-radius: 12px;
+            padding: 10px 20px;
+            font-size: 1.2rem;
+            font-weight: 900;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border: 2px solid #F2AB27;
+            min-width: 180px;
+            justify-content: center;
+        }
+
+        .podium-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            width: 100%;
+        }
+
+        .podium-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .podium-rank {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            font-weight: 800;
+            background: #F2AB27;
+            color: #000;
+            padding: 2px 10px;
+            border-radius: 10px;
+        }
+
+        /* The actual bracket trees */
+        .bracket-tree {
+            display: flex;
+            justify-content: space-between;
+            height: 700px;
+            /* Based on number of matches */
+            position: relative;
+        }
+
+        .column {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            position: relative;
+            width: 130px;
+            /* Reduced width */
+        }
+
+        .match-node {
+            background: white;
+            border-radius: 6px;
+            padding: 2px;
+            /* Reduced padding */
+            color: black;
+            font-size: 0.65rem;
+            /* Reduced font size */
+            font-weight: 800;
+            margin: 10px 0;
+            /* Reduced margin */
+            position: relative;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            border: 2px solid transparent;
+        }
+
+        .match-node.has-pts {
+            border-color: #00B140;
+        }
+
+        .match-team {
+            display: flex;
+            justify-content: space-between;
+            padding: 2px 4px;
+            align-items: center;
+            height: 18px;
+        }
+
+        .match-team:first-child {
+            border-bottom: 1px solid #eee;
+        }
+
+        .score {
+            font-weight: 900;
+            color: #102a68;
+            background: #f0f0f0;
+            padding: 0 4px;
+            border-radius: 3px;
+        }
+
+        .pts-indicator {
+            position: absolute;
+            right: -25px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #00B140;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.65rem;
+            font-weight: bold;
+        }
+
+        /* Left side lines connecting rightward */
+        .col-left.col-1 .match-node::after,
+        .col-left.col-2 .match-node::after,
+        .col-left.col-3 .match-node::after {
+            content: "";
+            position: absolute;
+            right: -25px;
+            top: 50%;
+            width: 25px;
+            border-bottom: 2px solid white;
+        }
+
+        /* Right side lines connecting leftward */
+        .col-right.col-1 .match-node::after,
+        .col-right.col-2 .match-node::after,
+        .col-right.col-3 .match-node::after {
+            content: "";
+            position: absolute;
+            left: -25px;
+            top: 50%;
+            width: 25px;
+            border-bottom: 2px solid white;
+        }
+
+        /* Vertical Connectors (Left) */
+        .col-left .connector {
+            position: absolute;
+            border-right: 2px solid white;
+            right: -25px;
+            width: 25px;
+            z-index: 1;
+            /* Keep lines behind center elements */
+        }
+
+        /* Vertical Connectors (Right) */
+        .col-right .connector {
+            position: absolute;
+            border-left: 2px solid white;
+            left: -25px;
+            width: 25px;
+            z-index: 1;
+            /* Keep lines behind center elements */
+        }
+
+        /* Adjust columns recursively */
+        .col-1 {
+            z-index: 5;
+        }
+
+        .col-2 {
+            z-index: 4;
+        }
+
+        .col-3 {
+            z-index: 3;
+        }
+
+        /* The match label (e.g., 1E, 2F) */
+        .team-label {
+            font-size: 0.6rem;
+            color: #666;
+            margin-right: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="split-bg"></div>
+
+    <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+    <div class="app-layout">
+        <aside class="sidebar" id="app-sidebar">
+            <button class="close-btn" onclick="toggleSidebar()">✕</button>
+            <div class="user-card">
+                <div class="user-avatar">👤</div>
+                <div class="user-name">{{ username }}</div>
+                <div class="user-stats">
+                    <span class="stat-badge pts">⭐ {{ sidebar_data.puntos }} pts</span>
+                    <span class="stat-badge rank">🏆 Posición: {{ sidebar_data.posicion }}°</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="/">🏠 Mis Predicciones</a>
+                <a href="/fixture" class="active">🗓️ Fixture Mundial</a>
+                <a href="/ranking">📈 Ranking Global</a>
+                <a href="/perfil">🎁 Elegí tus Premios</a>
+                <a href="/reglas">📜 Reglas</a>
+                <a href="#" hx-post="/logout">🚪 Salir</a>
+            </nav>
+        </aside>
+
+        <main style="flex: 1; width: 100%;">
+            <div class="top-app-bar">
+                <div class="top-app-bar-left">
+                    <button class="menu-trigger-btn" onclick="toggleSidebar()">☰</button>
+                    <div class="top-app-title">Fixture 2026</div>
+                </div>
+
+                <div class="top-app-bar-right">
+                    <a href="/" class="volver-btn">🏠 Volver al Inicio</a>
+                </div>
+            </div>
+
+            <div class="bracket-container">
+
+                <!-- TOP GROUPS -->
+                <div class="groups-row">
+                    <div class="group-box">
+                        <div class="group-flags">
+                            <div class="flag">🇲🇽</div>
+                            <div class="flag">🇿🇦</div>
+                            <div class="flag">🇰🇷</div>
+                            <div class="flag">🇩🇰</div>
+                        </div>
+                        GROUP A
+                    </div>
+                    <div class="group-box">
+                        <div class="group-flags">
+                            <div class="flag">🇨🇦</div>
+                            <div class="flag">🇮🇹</div>
+                            <div class="flag">🇶🇦</div>
+                            <div class="flag">🇨🇭</div>
+                        </div>
+                        GROUP B
+                    </div>
+                    <div class="group-box">
+                        <div class="group-flags">
+                            <div class="flag">🇧🇷</div>
+                            <div class="flag">🇲🇦</div>
+                            <div class="flag">🇭🇹</div>
+                            <div class="flag">🏴󠁧󠁢󠁳󠁣󠁴󠁿</div>
+                        </div>
+                        GROUP C
+                    </div>
+                    <div class="group-box">
+                        <div class="group-flags">
+                            <div class="flag">🇺🇸</div>
+                            <div class="flag">🇵🇾</div>
+                            <div class="flag">🇦🇺</div>
+                            <div class="flag">🇹🇷</div>
+                        </div>
+                        GROUP D
+                    </div>
+                    <div class="group-box">
+                        <div class="group-flags">
+                            <div class="flag">🇩🇪</div>
+                            <div class="flag">🇨🇼</div>
+                            <div class="flag">🇨🇮</div>
+                            <div class="flag">🇪🇨</div>
+                        </div>
+                        GROUP E
+                    </div>
+                    <div class="group-box">
+                        <div class="group-flags">
+                            <div class="flag">🇳🇱</div>
+                            <div class="flag">🇯🇵</div>
+                            <div class="flag">🇺🇦</div>
+                            <div class="flag">🇹🇳</div>
+                        </div>
+                        GROUP F
+                    </div>
+                </div>
+
+                <div class="bracket-tree">
+                    <!-- LEFT SIDE -->
+                    <div class="column col-left col-1">
+                        <!-- Maco helper for matches -->
+                        {% macro render_match(match_id, top_label='') %}
+                        {% set ns = namespace(k=none) %}
+                        {% for p in fixture_knockout %}
+                        {% if p.id == match_id %}{% set ns.k = p %}{% endif %}
+                        {% endfor %}
+                        {% set k = ns.k %}
+
+                        {# Prioridad 1: Asignación del Admin. Prioridad 2: Split del desc #}
+                        {% set t1_name = k.t1 if k and k.t1 else (k.desc.split(' v ')[0] if k and ' v ' in k.desc else
+                        'TBD') %}
+                        {% set t2_name = k.t2 if k and k.t2 else (k.desc.split(' v ')[1] if k and ' v ' in k.desc else
+                        'TBD') %}
+                        {% set b1_flag = k.bandera1 if k and k.bandera1 else '🏳️' %}
+                        {% set b2_flag = k.bandera2 if k and k.bandera2 else '🏳️' %}
+
+                        <div class="match-node {% if k and k.user_pts != 'N/A' %}has-pts{% endif %}">
+                            {% if top_label %}
+                            <div class="team-label"
+                                style="text-align:center; padding-bottom: 2px; border-bottom: 1px solid #eee; margin-bottom: 2px;">
+                                {{ top_label }}
+                            </div>
+                            {% endif %}
+
+                            {% if k %}
+                            <div class="match-team">
+                                <span>{{ b1_flag }} {{ t1_name }}{% if k.off_penales == t1_name %} 🏆{% endif %}</span>
+                                <span class="score">{{ k.off_g1 if k.off_g1 != '' else '-' }}</span>
+                            </div>
+                            <div class="match-team">
+                                <span>{{ b2_flag }} {{ t2_name }}{% if k.off_penales == t2_name %} 🏆{% endif %}</span>
+                                <span class="score">{{ k.off_g2 if k.off_g2 != '' else '-' }}</span>
+                            </div>
+                            {% if k.user_pts != 'N/A' %}
+                            <div class="pts-indicator" title="Sumaste {{ k.user_pts }} pts">{{ k.user_pts }}</div>
+                            {% endif %}
+                            {% else %}
+                            <div class="match-team"><span>🏳️ TBD</span><span class="score">-</span></div>
+                            <div class="match-team"><span>🏳️ TBD</span><span class="score">-</span></div>
+                            {% endif %}
+                        </div>
+                        {% endmacro %}
+
+                        <!-- Round of 32 (Top Half Left) -->
+                        {{ render_match('P74', '1E / 3ABCDF') }}
+                        {{ render_match('P77', '1I / 3CDFGH') }}
+                        {{ render_match('P73', '2A / 2B') }}
+                        {{ render_match('P75', '1F / 2C') }}
+
+                        <!-- Bottom Half Left -->
+                        {{ render_match('P83', '2K / 2L') }}
+                        {{ render_match('P84', '1H / 2J') }}
+                        {{ render_match('P81', '1D / 3BEFIJ') }}
+                        {{ render_match('P82', '1G / 3AEHIJ') }}
+                    </div>
+
+                    <div class="column col-left col-2">
+                        <div class="connector" style="top: 5%; bottom: 81%;"></div>
+                        <div class="connector" style="top: 30%; bottom: 56%;"></div>
+                        <div class="connector" style="top: 55%; bottom: 31%;"></div>
+                        <div class="connector" style="top: 80%; bottom: 6%;"></div>
+
+                        <!-- Round of 16 (Left) -->
+                        {{ render_match('P89') }}
+                        {{ render_match('P90') }}
+                        {{ render_match('P93') }}
+                        {{ render_match('P94') }}
+                    </div>
+
+                    <div class="column col-left col-3">
+                        <div class="connector" style="top: 13%; bottom: 61%;"></div>
+                        <div class="connector" style="top: 63%; bottom: 11%;"></div>
+
+                        <!-- Quarters (Left) -->
+                        {{ render_match('P97') }}
+                        {{ render_match('P98') }}
+                    </div>
+
+                    <div class="column col-left col-4" style="justify-content: center;">
+                        <div class="connector" style="top: 25%; bottom: 25%;"></div>
+                        <!-- Semi (Left) -->
+                        {{ render_match('SEMI1') }}
+                    </div>
+
+                    <!-- CENTER COLUMN (PODIUM) -->
+                    <div class="column col-center"
+                        style="width: 250px; justify-content: flex-start; padding-top: 40px; align-items: center;">
+
+                        <div class="podium-section">
+                            <div class="world-champions-title" style="font-size: 1.5rem; margin-bottom: 5px;">
+                                🏆 CUADRO DE HONOR
+                            </div>
+
+                            <!-- 1st Place -->
+                            <div class="podium-box">
+                                <span class="podium-rank">🥇 1er Puesto</span>
+                                <div class="winner-box">
+                                    <span>{% if podio.primero %}{{ podio.primero.flag }} {{ podio.primero.name }}{% else
+                                        %}?{% endif %}</span>
+                                </div>
+                            </div>
+
+                            <!-- 2nd Place -->
+                            <div class="podium-box">
+                                <span class="podium-rank" style="background: #a0aec0;">🥈 2do Puesto</span>
+                                <div class="winner-box" style="border-color: #a0aec0; font-size: 1rem;">
+                                    <span>{% if podio.segundo %}{{ podio.segundo.flag }} {{ podio.segundo.name }}{% else
+                                        %}?{% endif %}</span>
+                                </div>
+                            </div>
+
+                            <!-- 3rd Place -->
+                            <div class="podium-box">
+                                <span class="podium-rank" style="background: #cd7f32; color: white;">🥉 3er
+                                    Puesto</span>
+                                <div class="winner-box" style="border-color: #cd7f32; font-size: 1rem;">
+                                    <span>{% if podio.tercero %}{{ podio.tercero.flag }} {{ podio.tercero.name }}{% else
+                                        %}?{% endif %}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Final Match Nodes Mini -->
+                        <div style="width: 150px; margin-top: 40px;">
+                            {{ render_match('P104', 'Partido Final') }}
+                        </div>
+
+                        <div style="width: 150px; margin-top: 20px;">
+                            {{ render_match('P103', 'Tercer Puesto') }}
+                        </div>
+                    </div>
+
+                    <!-- RIGHT SIDE -->
+                    <div class="column col-right col-4" style="justify-content: center;">
+                        <div class="connector" style="top: 25%; bottom: 25%;"></div>
+                        <!-- Semi (Right) -->
+                        {{ render_match('SEMI2') }}
+                    </div>
+
+                    <div class="column col-right col-3">
+                        <div class="connector" style="top: 13%; bottom: 61%;"></div>
+                        <div class="connector" style="top: 63%; bottom: 11%;"></div>
+                        <!-- Quarters (Right) -->
+                        {{ render_match('P99') }}
+                        {{ render_match('P100') }}
+                    </div>
+
+                    <div class="column col-right col-2">
+                        <div class="connector" style="top: 5%; bottom: 81%;"></div>
+                        <div class="connector" style="top: 30%; bottom: 56%;"></div>
+                        <div class="connector" style="top: 55%; bottom: 31%;"></div>
+                        <div class="connector" style="top: 80%; bottom: 6%;"></div>
+                        <!-- Round of 16 (Right) -->
+                        {{ render_match('P91') }}
+                        {{ render_match('P92') }}
+                        {{ render_match('P95') }}
+                        {{ render_match('P96') }}
+                    </div>
+
+                    <div class="column col-right col-1">
+                        <!-- Round of 32 (Top Half Right) -->
+                        {{ render_match('P79', '1C / 2F') }}
+                        {{ render_match('P80', '2E / 2I') }}
+                        {{ render_match('P76', '1A / 3CEFHI') }}
+                        {{ render_match('P78', '1L / 3EHIJK') }}
+
+                        <!-- Bottom Half Right -->
+                        {{ render_match('P86', '1J / 2H') }}
+                        {{ render_match('P88', '2D / 2G') }}
+                        {{ render_match('P85', '1B / 3EFGIJ') }}
+                        {{ render_match('P87', '1K / 3DEIJL') }}
+                    </div>
+                </div>
+
+                <!-- BOTTOM GROUPS -->
+                <div class="groups-row bottom">
+                    <!-- Legacy bottom row removed -->
+                </div>
+
+                <!-- NEW MASTER GROUPS CARD -->
+                <div class="groups-master-card">
+                    <h2 class="groups-master-title">GRUPOS DE LA FIFA</h2>
+                    <div class="groups-grid-wrapper">
+                        <!-- Group A -->
+                        <div class="group-card">
+                            <div class="group-title">GRUPO A</div>
+                            <div class="team-row"><span class="flag-icon">🇲🇽</span> <span>MEX</span></div>
+                            <div class="team-row"><span class="flag-icon">🇿🇦</span> <span>RSA</span></div>
+                            <div class="team-row"><span class="flag-icon">🇰🇷</span> <span>KOR</span></div>
+                            <div class="team-row"><span class="flag-icon">🇩🇰</span> <span>DEN</span></div>
+                        </div>
+                        <!-- Group B -->
+                        <div class="group-card">
+                            <div class="group-title">GRUPO B</div>
+                            <div class="team-row"><span class="flag-icon">🇨🇦</span> <span>CAN</span></div>
+                            <div class="team-row"><span class="flag-icon">🇮🇹</span> <span>ITA</span></div>
+                            <div class="team-row"><span class="flag-icon">🇶🇦</span> <span>QAT</span></div>
+                            <div class="team-row"><span class="flag-icon">🇨🇭</span> <span>SUI</span></div>
+                        </div>
+                        <!-- Group C -->
+                        <div class="group-card">
+                            <div class="group-title">GRUPO C</div>
+                            <div class="team-row"><span class="flag-icon">🇧🇷</span> <span>BRA</span></div>
+                            <div class="team-row"><span class="flag-icon">🇲🇦</span> <span>MAR</span></div>
+                            <div class="team-row"><span class="flag-icon">🇭🇹</span> <span>HAI</span></div>
+                            <div class="team-row"><span class="flag-icon">🏴󠁧󠁢󠁳󠁣󠁴󠁿</span> <span>SCO</span></div>
+                        </div>
+                        <!-- Group D -->
+                        <div class="group-card">
+                            <div class="group-title">GRUPO D</div>
+                            <div class="team-row"><span class="flag-icon">🇺🇸</span> <span>USA</span></div>
+                            <div class="team-row"><span class="flag-icon">🇵🇾</span> <span>PAR</span></div>
+                            <div class="team-row"><span class="flag-icon">🇦🇺</span> <span>AUS</span></div>
+                            <div class="team-row"><span class="flag-icon">🇹🇷</span> <span>TUR</span></div>
+                        </div>
+                        <!-- Group E -->
+                        <div class="group-card">
+                            <div class="group-title">GRUPO E</div>
+                            <div class="team-row"><span class="flag-icon">🇩🇪</span> <span>GER</span></div>
+                            <div class="team-row"><span class="flag-icon">🇨🇼</span> <span>CUW</span></div>
+                            <div class="team-row"><span class="flag-icon">🇨🇮</span> <span>CIV</span></div>
+                            <div class="team-row"><span class="flag-icon">🇪🇨</span> <span>ECU</span></div>
+                        </div>
+                        <!-- Group F -->
+                        <div class="group-card">
+                            <div class="group-title">GRUPO F</div>
+                            <div class="team-row"><span class="flag-icon">🇳🇱</span> <span>NED</span></div>
+                            <div class="team-row"><span class="flag-icon">🇯🇵</span> <span>JPN</span></div>
+                            <div class="team-row"><span class="flag-icon">🇺🇦</span> <span>UKR</span></div>
+                            <div class="team-row"><span class="flag-icon">🇹🇳</span> <span>TUN</span></div>
+                        </div>
+                        <!-- Group G -->
+                        <div class="group-card">
+                            <div class="group-title">GRUPO G</div>
+                            <div class="team-row"><span class="flag-icon">🇧🇪</span> <span>BEL</span></div>
+                            <div class="team-row"><span class="flag-icon">🇪🇬</span> <span>EGY</span></div>
+                            <div class="team-row"><span class="flag-icon">🇮🇷</span> <span>IRN</span></div>
+                            <div class="team-row"><span class="flag-icon">🇳🇿</span> <span>NZL</span></div>
+                        </div>
+                        <!-- Group H -->
+                        <div class="group-card">
+                            <div class="group-title">GRUPO H</div>
+                            <div class="team-row"><span class="flag-icon">🇪🇸</span> <span>ESP</span></div>
+                            <div class="team-row"><span class="flag-icon">🇨🇻</span> <span>CPV</span></div>
+                            <div class="team-row"><span class="flag-icon">🇸🇦</span> <span>KSA</span></div>
+                            <div class="team-row"><span class="flag-icon">🇺🇾</span> <span>URU</span></div>
+                        </div>
+                        <!-- Group I -->
+                        <div class="group-card">
+                            <div class="group-title">GRUPO I</div>
+                            <div class="team-row"><span class="flag-icon">🇫🇷</span> <span>FRA</span></div>
+                            <div class="team-row"><span class="flag-icon">🇸🇳</span> <span>SEN</span></div>
+                            <div class="team-row"><span class="flag-icon">🇧🇴</span> <span>BOL</span></div>
+                            <div class="team-row"><span class="flag-icon">🇳🇴</span> <span>NOR</span></div>
+                        </div>
+                        <!-- Group J -->
+                        <div class="group-card">
+                            <div class="group-title">GRUPO J</div>
+                            <div class="team-row"><span class="flag-icon">🇦🇷</span> <span>ARG</span></div>
+                            <div class="team-row"><span class="flag-icon">🇩🇿</span> <span>ALG</span></div>
+                            <div class="team-row"><span class="flag-icon">🇦🇹</span> <span>AUT</span></div>
+                            <div class="team-row"><span class="flag-icon">🇯🇴</span> <span>JOR</span></div>
+                        </div>
+                        <!-- Group K -->
+                        <div class="group-card">
+                            <div class="group-title">GRUPO K</div>
+                            <div class="team-row"><span class="flag-icon">🇵🇹</span> <span>POR</span></div>
+                            <div class="team-row"><span class="flag-icon">🇯🇲</span> <span>JAM</span></div>
+                            <div class="team-row"><span class="flag-icon">🇺🇿</span> <span>UZB</span></div>
+                            <div class="team-row"><span class="flag-icon">🇨🇴</span> <span>COL</span></div>
+                        </div>
+                        <!-- Group L -->
+                        <div class="group-card">
+                            <div class="group-title">GRUPO L</div>
+                            <div class="team-row"><span class="flag-icon">🏴󠁧󠁢󠁥󠁮󠁧󠁿</span> <span>ENG</span></div>
+                            <div class="team-row"><span class="flag-icon">🇭🇷</span> <span>CRO</span></div>
+                            <div class="team-row"><span class="flag-icon">🇬🇭</span> <span>GHA</span></div>
+                            <div class="team-row"><span class="flag-icon">🇵🇦</span> <span>PAN</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <script>
+                function toggleSidebar() {
+                    document.getElementById('app-sidebar').classList.toggle('open');
+                    document.querySelector('.sidebar-overlay').classList.toggle('open');
+                }
+            </script>
+</body>
+
+</html>

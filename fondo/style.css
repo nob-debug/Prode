@@ -1,0 +1,69 @@
+:root {
+  --grass-dark: #2d5a27;
+  --grass-light: #35662e;
+  --line-white: rgba(255, 255, 255, 0.6);
+}
+
+.soccer-bg {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  /* Creamos las franjas de la grama con linear-gradient */
+  background: linear-gradient(90deg, 
+    var(--grass-dark) 50%, 
+    var(--grass-light) 50%
+  );
+  background-size: 10% 100%; /* Esto crea las franjas verticales */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* Efecto de textura de hierba (opcional pero le da realismo) */
+.soccer-bg::before {
+  content: "";
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  opacity: 0.1;
+  background-image: url('https://www.transparenttextures.com/patterns/carbon-fibre.png');
+  pointer-events: none;
+}
+
+/* El círculo central del campo */
+.field-lines::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 200px;
+  height: 200px;
+  border: 2px solid var(--line-white);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+/* La línea que divide el campo a la mitad */
+.field-lines::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 2px;
+  height: 100%;
+  background-color: var(--line-white);
+  transform: translateX(-50%);
+}
+
+/* El punto central (donde se saca) */
+.glow-ball {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background: white;
+  border-radius: 50%;
+  box-shadow: 0 0 15px white;
+  z-index: 5;
+}

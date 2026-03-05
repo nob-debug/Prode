@@ -1,0 +1,943 @@
+/* ========================================
+   1. VARIABLES DEL SISTEMA
+   ======================================== */
+:root {
+    color-scheme: light !important;
+    --color-primary-dark: #021F59;
+    --color-primary: #102A68;
+    --color-primary-light: #4D9BF5;
+    --color-secondary: #F2AB27;
+    --color-success: #00B140;
+    --color-error: #C8102E;
+    --color-white: #ffffff;
+
+    --color-gray-50: #f9fafb;
+    --color-gray-100: #f3f4f6;
+    --color-gray-200: #e5e7eb;
+    --color-gray-300: #d1d5db;
+    --color-gray-500: #6b7280;
+    --color-gray-900: #111827;
+
+    --border-radius-lg: 12px;
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --grass-dark: #2d5a27;
+    --grass-light: #35662e;
+    --line-white: rgba(255, 255, 255, 0.6);
+}
+
+/* Force light theme overall and allow global background to show through */
+html,
+body,
+[data-testid="stAppViewContainer"] {
+    background-color: transparent !important;
+    color: var(--color-gray-900) !important;
+}
+
+/* ========================================
+   2. AJUSTES GENERALES
+   ======================================== */
+#MainMenu {
+    visibility: hidden;
+}
+
+footer {
+    visibility: hidden;
+}
+
+header {
+    /* Permitir que el header de Streamlit se vea para poder usar el botón del sidebar */
+    background-color: transparent !important;
+}
+
+.stApp {
+    background-color: var(--color-gray-50);
+    font-family: 'Inter', sans-serif;
+}
+
+/* Tabs */
+.stTabs [data-baseweb="tab-list"] {
+    gap: 8px;
+    background-color: #141E59;
+    padding: 10px;
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+.stTabs [data-baseweb="tab"] {
+    height: 50px;
+    white-space: pre-wrap;
+    border-radius: 6px;
+    padding: 0 20px;
+    font-weight: 600;
+    color: white;
+    /* Texto blanco en tabs inactivos */
+}
+
+.stTabs [aria-selected="true"] {
+    background-color: var(--color-secondary) !important;
+    color: #000 !important;
+    /* Texto negro en tab activo */
+}
+
+/* ========================================
+   3. HEADER & TITULOS
+   ======================================== */
+.custom-header {
+    background-color: var(--color-primary-dark);
+    padding: 15px;
+    border-bottom: 4px solid var(--color-secondary);
+    margin: -6rem -4rem 2rem -4rem;
+    display: flex;
+    justify-content: center;
+    box-shadow: var(--shadow-sm);
+}
+
+.header-left-section {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    max-width: 800px;
+}
+
+.header-text-main {
+    font-family: 'Montserrat', sans-serif;
+    color: white;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 1.1rem;
+    text-align: right;
+    border-right: 1px solid rgba(255, 255, 255, 0.2);
+    padding-right: 20px;
+}
+
+.header-logo-img {
+    height: 60px;
+    object-fit: contain;
+}
+
+.header-pro-container {
+    background: #1E1A4B;
+    border: 1px solid var(--color-gray-200);
+    padding: 24px 0;
+    margin-bottom: 32px;
+    border-radius: var(--border-radius-lg);
+    text-align: center;
+    box-shadow: var(--shadow-sm);
+}
+
+.text-gradient-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 2.5rem !important;
+    font-weight: 900 !important;
+    text-transform: uppercase;
+    margin: 0;
+}
+
+/* ========================================
+   4. TARJETAS DE GRUPOS (MODIFICADO - SOLICITUD DE COLOR)
+   ======================================== */
+/* Aquí aplicamos el color de fondo solicitado para la fase de grupos */
+.group-content-wrapper {
+    background-color: #f8f9fa;
+    /* Color gris muy suave */
+    border: 1px solid #e9ecef;
+    /* Borde sutil */
+    padding: 15px;
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+    margin-bottom: 10px;
+}
+
+.team-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--color-gray-900);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.vs-label {
+    font-size: 0.7rem;
+    color: var(--color-gray-500);
+    font-weight: 700;
+}
+
+.meta-info {
+    font-size: 0.65rem;
+    color: var(--color-gray-500);
+    text-align: center;
+}
+
+/* ========================================
+   5. TARJETAS DE USUARIO (ELIMINATORIAS) - TÉCNICA SELECTOR HERMANO
+   ======================================== */
+
+/* Header de la Tarjeta */
+.user-card-header {
+    background-color: #c7daff;
+    border: 1px solid #b3c7ef;
+    border-bottom: none !important;
+    border-radius: 12px 12px 0 0;
+    padding: 10px 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #0a1a41;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0 !important;
+}
+
+/* Ocultar los contenedores de los markers */
+div[data-testid="stElementContainer"]:has(.hk-radio-marker),
+div[data-testid="stElementContainer"]:has(.hk-btn-marker),
+div[data-testid="stElementContainer"]:has(.hk-locked-marker) {
+    display: none;
+}
+
+/* Contenedor del Radio (Cuerpo Medio) */
+div[data-testid="stElementContainer"]:has(.hk-radio-marker)+div[data-testid="stElementContainer"] {
+    background: #ffffff;
+    border-left: 1px solid #b3c7ef;
+    border-right: 1px solid #b3c7ef;
+    padding: 15px 0 10px 0;
+    margin-top: -1rem !important;
+    /* Une el body con el header */
+    margin-bottom: 0 !important;
+    position: relative;
+    z-index: 10;
+    width: 100% !important;
+}
+
+/* Contenedor del Botón o Confirmado (Cuerpo Final) */
+div[data-testid="stElementContainer"]:has(.hk-btn-marker)+div[data-testid="stElementContainer"],
+div[data-testid="stElementContainer"]:has(.hk-locked-marker)+div[data-testid="stElementContainer"] {
+    background: #ffffff;
+    border-left: 1px solid #b3c7ef;
+    border-right: 1px solid #b3c7ef;
+    border-bottom: 1px solid #b3c7ef;
+    border-radius: 0 0 12px 12px;
+    padding-top: 5px;
+    padding-bottom: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.04);
+    margin-top: -1rem !important;
+    /* Une el final con el radio */
+    position: relative;
+    z-index: 5;
+    width: 100% !important;
+}
+
+/* Grupo de Botones (Centrado, envolvente) */
+div[data-testid="stElementContainer"]:has(.hk-radio-marker)+div[data-testid="stElementContainer"] .stRadio>div[role="radiogroup"] {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    flex-wrap: wrap;
+    /* Permite bajar si no hay espacio */
+    gap: 15px;
+    width: 100%;
+    /* Toma ancho completo disponible */
+    padding: 0 10px;
+}
+
+/* Estilo del Botón (Caja Azul - Color Plano) */
+div[data-testid="stElementContainer"]:has(.hk-radio-marker)+div[data-testid="stElementContainer"] .stRadio label[data-baseweb="radio"] {
+    flex: 1 1 160px;
+    /* Crecer y encoger desde 160px, permite hacer wrap */
+    min-width: 160px;
+    /* Minimo solicitado */
+    max-width: 250px;
+    /* Evitar que crezca descomunalmente a resoluciones grandes */
+    height: 48px;
+    background: #021F59;
+    color: white !important;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 15px;
+    white-space: nowrap;
+    overflow: hidden;
+    transition: transform 0.1s;
+    margin: 0 !important;
+    /* quita márgenes heredados por si acaso */
+}
+
+/* Hover */
+div[data-testid="stElementContainer"]:has(.hk-radio-marker)+div[data-testid="stElementContainer"] .stRadio label[data-baseweb="radio"]:hover {
+    transform: translateY(-2px);
+    cursor: pointer;
+    border-color: var(--color-secondary);
+}
+
+/* Texto dentro del botón */
+div[data-testid="stElementContainer"]:has(.hk-radio-marker)+div[data-testid="stElementContainer"] .stRadio p {
+    color: white !important;
+    font-weight: 600;
+    margin-left: 8px;
+    font-size: 0.9rem;
+}
+
+/* ========================================
+   6. ADMIN CARDS
+   ======================================== */
+.admin-card-header {
+    background-color: var(--color-gray-100);
+    padding: 8px;
+    border-bottom: 1px solid var(--color-gray-200);
+    font-weight: 700;
+    color: #0a1a41;
+}
+
+/* Global Headers Blue */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.stMarkdown h1,
+.stMarkdown h2,
+.stMarkdown h3 {
+    color: #0a1a41 !important;
+}
+
+/* Ajustes Inputs */
+div[data-testid="stNumberInput"] input {
+    padding: 0.2rem 0.5rem;
+    min-height: 35px;
+}
+
+div[data-testid="stSelectbox"]>div>div {
+    min-height: 35px;
+}
+
+/* ========================================
+   12. CAJAS INDEPENDIENTES (LECTURA GARANTIZADA)
+   ======================================== */
+
+/* Caja para el estado "Pendiente / A definir" */
+.match-status-box {
+    background-color: #ffffff !important;
+    color: #1f2937 !important;
+    border: 1px solid #e5e7eb !important;
+    border-top: none !important;
+    border-radius: 0 0 12px 12px;
+    padding: 20px;
+    text-align: center;
+    font-weight: 500;
+    margin-bottom: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+}
+
+/* Badge del ID del partido (Ej: P34) */
+.match-id-badge {
+    background-color: rgba(255, 255, 255, 0.4) !important;
+    color: #0a1a41 !important;
+    border: 1px solid rgba(10, 26, 65, 0.2) !important;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    display: inline-block;
+}
+
+/* Texto del Header (Fecha y Sede) */
+.match-header-text {
+    color: #0a1a41 !important;
+    font-weight: 600;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+}
+
+/* Iconos pequeños en el header */
+.match-header-icon {
+    opacity: 0.6;
+    margin: 0 6px;
+    color: #0a1a41 !important;
+}
+
+/* ========================================
+   13. ESTILOS DE EXPANDERS (FASE DE GRUPOS)
+   ======================================== */
+
+/* Header del Expander por defecto */
+div[data-testid="stExpander"] details summary {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background-color: white;
+    color: var(--color-primary);
+    transition: all 0.2s ease;
+}
+
+/* Hover en el Header del Expander */
+div[data-testid="stExpander"] details summary:hover {
+    background-color: #102A68 !important;
+    color: #ffffff !important;
+}
+
+/* Cuando el Expander está ABIERTO (Active) */
+div[data-testid="stExpander"] details[open] summary {
+    background-color: #102A68 !important;
+    color: #ffffff !important;
+    border-color: #102A68;
+}
+
+/* Icono del Expander (Flecha) */
+div[data-testid="stExpander"] details summary svg {
+    color: inherit !important;
+}
+
+/* Global Headers Claro (Header Principal) */
+.header-pro-container .global-header-claro {
+    color: #ffffff !important;
+    text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.header-pro-container .header-subtitle {
+    color: rgba(255, 255, 255, 0.9) !important;
+    font-weight: 500;
+}
+
+/* ========================================
+   14. PENALTY SELECTOR (ESTÁNDAR)
+   ======================================== */
+.penalty-selector-standard {
+    margin-top: 10px;
+    padding: 10px;
+    background-color: #f1f3f9;
+    border-radius: 8px;
+    border: 1px solid #d1d9e6;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+}
+
+.penalty-selector-label {
+    font-weight: 700;
+    font-size: 0.8rem;
+    color: #102A68;
+    text-transform: uppercase;
+}
+
+/* Fix radio button text color for penalties (Player View) */
+div[data-testid="stRadio"] label[data-baseweb="radio"] div:last-child,
+div[data-testid="stRadio"] label[data-baseweb="radio"] div:last-child p,
+div[data-testid="stRadio"] label[data-baseweb="radio"] span,
+div[data-testid="stRadio"] label[data-baseweb="radio"] p {
+    color: #0a1a41 !important;
+    font-weight: 700 !important;
+    font-size: 0.95rem !important;
+}
+
+/* ========================================
+   15. DIVISORES DE PARTIDOS
+   ======================================== */
+.match-divider-standard {
+    border-bottom: 2px solid #ced4da !important;
+    margin-top: 50px !important;
+    margin-bottom: 50px !important;
+    width: 100%;
+}
+
+/* ========================================
+   16. BANNERS Y CRAWLER (FASE 16)
+   ======================================== */
+.match-crawler-wrapper {
+    width: 100%;
+    overflow: hidden;
+    background: #FFEB3B;
+    /* Amarillo brillante resaltante */
+    border: 3px solid #F2AB27;
+    border-radius: 8px;
+    margin: 10px 0 25px 0;
+    padding: 15px 0;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.match-crawler-text {
+    display: inline-block;
+    white-space: nowrap;
+    animation: match-scroll 160s linear infinite;
+    font-weight: 900;
+    color: #102A68;
+    font-size: 1.2rem;
+    letter-spacing: 0.5px;
+}
+
+@keyframes match-scroll {
+    from {
+        transform: translateX(0);
+    }
+
+    to {
+        transform: translateX(-50%);
+    }
+}
+
+.crawler-alert {
+    color: #C8102E;
+    text-transform: uppercase;
+}
+
+.crawler-separator {
+    margin: 0 40px;
+    color: #C8102E;
+    font-weight: 400;
+}
+
+/* ========================================
+   17. SIDEBAR LAYOUT
+   ======================================== */
+.app-layout {
+    display: block;
+    min-height: 100vh;
+    width: 100%;
+}
+
+.sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(16, 42, 104, 0.4);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    z-index: 998;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.sidebar-overlay.open {
+    opacity: 1;
+    visibility: visible;
+}
+
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: -320px;
+    width: 280px;
+    background-color: #ffffff;
+    border-right: none;
+    display: flex;
+    flex-direction: column;
+    padding: 30px 20px;
+    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
+    height: 100vh;
+    box-sizing: border-box;
+    z-index: 1000;
+    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebar.open {
+    left: 0;
+}
+
+.close-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: #f1f5f9;
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #4a5568;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, color 0.2s;
+    outline: none;
+}
+
+.close-btn:hover {
+    background: #e2e8f0;
+    color: #e53e3e;
+}
+
+.main-content {
+    display: block;
+    width: 100%;
+}
+
+.top-app-bar {
+    display: flex;
+    align-items: center;
+    background: linear-gradient(90deg, #021F59 0%, #102a68 100%);
+    color: white;
+    padding: 12px 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 900;
+}
+
+.menu-trigger-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    color: white;
+    font-size: 1.4rem;
+    cursor: pointer;
+    width: 42px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 15px;
+    transition: background 0.2s;
+    outline: none;
+}
+
+.menu-trigger-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.top-app-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    font-family: 'Montserrat', sans-serif;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin: 0;
+}
+
+.top-app-score {
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 0.95rem;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    white-space: nowrap;
+}
+
+.sponsor-logo {
+    text-align: center;
+    margin-bottom: 25px;
+    margin-top: 10px;
+}
+
+.user-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 15px;
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+/* Adjusting container padding for new layout */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 25px 20px;
+}
+
+.user-avatar {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+}
+
+.user-name {
+    font-weight: bold;
+    color: #102a68;
+    font-size: 1.1rem;
+    margin-bottom: 15px;
+    text-transform: capitalize;
+}
+
+.user-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.stat-badge {
+    color: #2b6cb0;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.stat-badge.pts {
+    background: #def7ec;
+    color: #03543f;
+    border: 1px solid #bcf0da;
+}
+
+.stat-badge.rank {
+    background: #fefcbf;
+    color: #975a16;
+    border: 1px solid #fdf6b2;
+}
+
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.sidebar-nav a {
+    text-decoration: none;
+    color: #4a5568;
+    padding: 12px 15px;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.95rem;
+    border: 1px solid transparent;
+}
+
+.sidebar-nav a:hover,
+.sidebar-nav a.active {
+    background: #ebf8ff;
+    color: #3182ce;
+    border-color: #bee3f8;
+}
+
+.logout-btn {
+    text-align: center;
+    justify-content: center;
+    margin-top: auto;
+    background: #fff5f5 !important;
+    color: #e53e3e !important;
+    border-color: #fed7d7 !important;
+}
+
+.logout-btn:hover {
+    background: #fed7d7 !important;
+}
+
+.navbar {
+    display: none !important;
+}
+
+/* ========================================
+   18. PRIZE GALLERY (ELEGÍ TUS PREMIOS)
+   ======================================== */
+.prize-category-title {
+    font-size: 1.8rem;
+    font-weight: 900;
+    color: #102a68;
+    text-transform: uppercase;
+    margin-top: 40px;
+    margin-bottom: 15px;
+    letter-spacing: -0.5px;
+    border-bottom: 3px solid #F2AB27;
+    display: inline-block;
+    padding-bottom: 5px;
+}
+
+.prize-gallery {
+    display: flex;
+    overflow-x: auto;
+    gap: 20px;
+    padding: 10px 5px 25px 5px;
+    cursor: grab;
+    /* Hide scrollbar for cleaner look but still scrollable */
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.prize-gallery:active {
+    cursor: grabbing;
+}
+
+.prize-gallery::-webkit-scrollbar {
+    display: none;
+}
+
+.prize-card {
+    min-width: 355px;
+    height: 400px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid #edf2f7;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.prize-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+}
+
+.prize-img-container {
+    height: 200px;
+    width: 100%;
+    background-color: #f8fafc;
+    border-bottom: 1px solid #edf2f7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.prize-img-container img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.prize-info {
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.prize-title {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #1a202c;
+    margin: 0 0 5px 0;
+}
+
+.prize-desc {
+    font-size: 0.9rem;
+    color: #4a5568;
+    margin: 0 0 10px 0;
+    line-height: 1.3;
+    flex-grow: 1;
+}
+
+.prize-points {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #102a68;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 15px;
+}
+
+.prize-btn {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 1rem;
+    text-align: center;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.prize-btn.available {
+    background-color: #e6ffed;
+    color: #03543f;
+    border: 1px solid #bcf0da;
+}
+
+.prize-btn.available:hover {
+    background-color: #c6f6d5;
+}
+
+.prize-btn.locked {
+    background-color: #f1f5f9;
+    color: #64748b;
+    border: 1px solid #e2e8f0;
+    cursor: not-allowed;
+}
+
+/* ========================================
+   19. SOCCER FIELD BACKGROUND (GLOBAL)
+   ======================================== */
+.soccer-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: -999;
+    background: linear-gradient(90deg,
+            var(--grass-dark) 50%,
+            var(--grass-light) 50%);
+    background-size: 10% 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.soccer-bg::before {
+    content: "";
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    opacity: 0.1;
+    background-image: url('https://www.transparenttextures.com/patterns/carbon-fibre.png');
+    pointer-events: none;
+}
+
+.field-lines::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 200px;
+    height: 200px;
+    border: 2px solid var(--line-white);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.field-lines::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 2px;
+    height: 100%;
+    background-color: var(--line-white);
+    transform: translateX(-50%);
+}
+
+.glow-ball {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 0 15px white;
+    z-index: 5;
+}
+
+#particleCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 10;
+}

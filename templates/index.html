@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prode Mundial 2026</title>
+    <!-- Incluir CSS original -->
+    <link href="/static/css/style.css" rel="stylesheet">
+    <!-- Incluir HTMX desde CDN -->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <style>
+        /* Ajustes básicos para layout general similar al contenedor principal de Streamlit */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f7f9fb;
+            color: #31333F;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: #102a68;
+        }
+
+        .groups-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        .group-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            padding: 20px;
+            /* El borde superior se delega a style.css, pero definimos un fallback general */
+            border-top: 5px solid #ccc;
+        }
+
+        .group-header {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #102a68;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .match-card {
+            border: 1px solid #edf2f7;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            background: #ffffff;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .match-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .match-info {
+            display: flex;
+            justify-content: space-between;
+            color: #718096;
+            font-size: 0.85rem;
+            margin-bottom: 12px;
+            font-weight: 500;
+        }
+
+        .match-teams {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .team-block {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+        }
+
+        .team-block.right {
+            flex-direction: row-reverse;
+            text-align: right;
+        }
+
+        .team-flag {
+            font-size: 1.8rem;
+        }
+
+        .team-name {
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 1rem;
+        }
+
+        .predict-inputs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            align-items: center;
+            background: #f8fafc;
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .predict-inputs input {
+            width: 45px;
+            height: 45px;
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border: 2px solid #cbd5e0;
+            border-radius: 6px;
+            color: #102a68;
+            transition: border-color 0.2s;
+        }
+
+        .predict-inputs input:focus {
+            outline: none;
+            border-color: #3182ce;
+        }
+
+        .predict-inputs span {
+            font-weight: bold;
+            color: #a0aec0;
+        }
+
+        .status-feedback {
+            text-align: center;
+            height: 20px;
+            margin-top: 8px;
+            font-size: 0.85rem;
+        }
+
+        /* Tabs basic styling */
+        .tabs {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            font-weight: 600;
+            color: #718096;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .tab:hover {
+            background: #edf2f7;
+        }
+
+        .tab.active {
+            color: #102a68;
+            background: #ebf8ff;
+            border-bottom: 3px solid #3182ce;
+        }
+
+        .top-app-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: linear-gradient(90deg, #021F59 0%, #102a68 100%);
+            color: white;
+            padding: 8px 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1001;
+            height: 65px;
+        }
+
+        .top-app-bar-left,
+        .top-app-bar-right {
+            display: flex;
+            align-items: center;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .top-app-bar-right {
+            justify-content: flex-end;
+        }
+
+        .top-app-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            font-family: 'Montserrat', sans-serif;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin: 0;
+            white-space: nowrap;
+        }
+
+        .header-tabs {
+            flex: 2;
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin: 0 !important;
+            border: none !important;
+            padding: 0 !important;
+        }
+
+        .top-app-bar .tab {
+            color: rgba(255, 255, 255, 0.85);
+            padding: 8px 14px;
+            font-size: 0.85rem;
+            border-radius: 8px;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+
+        .top-app-bar .tab:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+        }
+
+        .top-app-bar .tab.active {
+            color: #102a68;
+            background: #F2AB27;
+            font-weight: 700;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .top-app-score {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+
+        @media (max-width: 900px) {
+            .top-app-bar .tabs {
+                display: none;
+                /* Ocultar en móviles para no romper el layout, o usar scroll */
+            }
+
+            .container .tabs.mobile-only {
+                display: flex;
+            }
+        }
+
+        @media (min-width: 901px) {
+            .container .tabs.mobile-only {
+                display: none;
+            }
+        }
+
+        /* Nuevos estilos para la Tarjeta de Predicción */
+        .match-card-form {
+            display: block;
+            margin-bottom: 15px;
+        }
+
+        .vs-text {
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: #102a68;
+            margin: 0 10px;
+        }
+
+        .penalties-section {
+            display: none;
+            /* Oculto por defecto, se muestra vía JS */
+            border-top: 2px solid #102a68;
+            margin-top: 15px;
+            padding-top: 15px;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .penalties-title {
+            text-align: center;
+            font-weight: bold;
+            color: #102a68;
+            font-size: 0.95rem;
+            line-height: 1.2;
+            text-transform: uppercase;
+        }
+
+        .penalty-team {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Checkbox-like appearance for radio button */
+        .penalty-checkbox {
+            width: 28px;
+            height: 28px;
+            cursor: pointer;
+            border: 2px solid #102a68;
+            border-radius: 4px;
+            /* para que parezca checkbox */
+            appearance: none;
+            -webkit-appearance: none;
+            outline: none;
+            position: relative;
+            background: white;
+        }
+
+        .penalty-checkbox:checked {
+            background-color: white;
+            border-color: #102a68;
+        }
+
+        .penalty-checkbox:checked::after {
+            content: '✔';
+            position: absolute;
+            color: #00c853;
+            /* Verde brillante como en la imagen */
+            font-size: 24px;
+            font-weight: bold;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .save-btn {
+            width: 100%;
+            background-color: #102a68;
+            color: white;
+            font-weight: bold;
+            font-size: 1.1rem;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            margin-top: 15px;
+            cursor: pointer;
+            transition: background 0.2s;
+            text-transform: uppercase;
+        }
+
+        .save-btn:hover {
+            background: #0b1c46;
+        }
+
+        /* Slideshow Banner */
+        .slideshow-container {
+            width: 100%;
+            height: 450px;
+            position: relative;
+            overflow: hidden;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .slide.active {
+            opacity: 1;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Fondo Animado de Fútbol -->
+    <div class="soccer-bg">
+        <div class="field-lines"></div>
+        <div class="glow-ball"></div>
+        <canvas id="particleCanvas"></canvas>
+    </div>
+
+    <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+    <div class="app-layout">
+        <aside class="sidebar" id="app-sidebar">
+            <button class="close-btn" onclick="toggleSidebar()">✕</button>
+            <div class="sponsor-logo">
+                <img src="/static/img/sponsor-logo.png" alt="Sponsor Logo" style="max-width: 100%; border-radius: 8px;"
+                    onerror="this.onerror=null; this.src='https://via.placeholder.com/200x80?text=SPONSOR';">
+            </div>
+
+            <div class="user-card">
+                <div class="user-avatar">👤</div>
+                <div class="user-name">{{ username }}</div>
+                <div class="user-stats">
+                    <span class="stat-badge pts">⭐ {{ sidebar_data.puntos }} pts</span>
+                    <span class="stat-badge rank">🏆 Posición: {{ sidebar_data.posicion }}°</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="/" class="active">🏠 Mis Predicciones</a>
+                <a href="/fixture">🗓️ Fixture Mundial</a>
+                <a href="/ranking">📈 Ranking Global</a>
+                <a href="/perfil">🎁 Elegí tus Premios</a>
+                <a href="/reglas">📜 Reglas</a>
+                <a href="#" hx-post="/logout" class="logout-btn">🚪 Salir</a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <div class="top-app-bar">
+                <div class="top-app-bar-left">
+                    <button class="menu-trigger-btn" onclick="toggleSidebar()">☰</button>
+                    <div class="top-app-title">PRODE 2026</div>
+                </div>
+
+                <div class="tabs header-tabs">
+                    <div class="tab active" onclick="showTab('tab-grupos')">⚽ Grupos</div>
+                    <div class="tab" onclick="showTab('tab-dieciseisavos')">🚨 Dieciseisavos</div>
+                    <div class="tab" onclick="showTab('tab-octavos')">🔥 Octavos</div>
+                    <div class="tab" onclick="showTab('tab-finales')">🏆 Finales</div>
+                </div>
+
+                <div class="top-app-bar-right">
+                    <div class="top-app-score">
+                        llevás ⭐ {{ sidebar_data.puntos }} pts
+                    </div>
+                </div>
+            </div>
+            <div class="container">
+                <!-- Header y subtítulo eliminados según solicitud -->
+
+                <!-- Crawler eliminado según solicitud -->
+
+                <!-- Banner Slideshow -->
+                <div class="slideshow-container">
+                    <div class="slide active" style="background-image: url('/static/banner/slide1.jpg');"></div>
+                    <div class="slide" style="background-image: url('/static/banner/slide2.jpg');"></div>
+                    <div class="slide" style="background-image: url('/static/banner/slide3.jpg');"></div>
+                    <div class="slide" style="background-image: url('/static/banner/slide4.jpg');"></div>
+                </div>
+
+                <script>
+                    document.addEventListener("DOMContentLoaded", () => {
+                        let currentSlide = 0;
+                        const slides = document.querySelectorAll(".slide");
+                        if (slides.length > 0) {
+                            setInterval(() => {
+                                slides[currentSlide].classList.remove("active");
+                                currentSlide = (currentSlide + 1) % slides.length;
+                                slides[currentSlide].classList.add("active");
+                            }, 5000); // Cambia cada 5 segundos
+                        }
+                    });
+                </script>
+
+                <!-- Navegación por fases para móviles solamente -->
+                <div class="tabs mobile-only" style="margin-top: 20px;">
+                    <div class="tab active" onclick="showTab('tab-grupos')">⚽ Grupos</div>
+                    <div class="tab" onclick="showTab('tab-dieciseisavos')">🚨 Dieciseisavos</div>
+                    <div class="tab" onclick="showTab('tab-octavos')">🔥 Octavos</div>
+                    <div class="tab" onclick="showTab('tab-finales')">🏆 Finales</div>
+                </div>
+
+                <!-- Banner Crawler Dinámico importado desde Jinja -->
+                {% if crawling_text %}
+                <div class="match-crawler-wrapper">
+                    <div class="match-crawler-text">
+                        {{ crawling_text|safe }}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- TAB: GRUPOS -->
+                <div id="tab-grupos" class="phase-tab-content">
+
+                    <div class="groups-grid">
+                        {% for fecha, partidos in partidos_agrupados_fecha.items() %}
+                        <div class="group-container" style="border-top: 5px solid #102a68;">
+                            <div class="group-header" style="margin-bottom: 0.5rem;">Eventos del Día {{ fecha }}
+                            </div>
+
+                            {% for p in partidos %}
+                            {% set is_locked = p.id in partidos_cerrados %}
+                            <div
+                                style="text-align: center; color: #102a68; font-weight: 800; font-size: 0.95rem; margin-bottom: 5px; margin-top: 15px; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                                <span>📌 {{ p.grupo }}</span>
+                                {% if is_locked %}
+                                <span
+                                    style="background-color: #dc3545; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-transform: none; letter-spacing: 0;">🔒
+                                    FINALIZADO</span>
+                                {% endif %}
+                            </div>
+                            <form class="match-card-form" hx-post="/predict/{{ p.id }}" hx-trigger="submit"
+                                hx-target="#status-{{ p.id }}" hx-swap="innerHTML">
+                                <div class="match-card" id="card_{{ p.id }}">
+                                    <div class="match-info">
+                                        <span>📅 {{ p.fecha }}</span>
+                                        <span>🏟️ {{ p.sede }}</span>
+                                    </div>
+
+                                    <div class="match-teams">
+                                        <div class="team-block">
+                                            <span class="team-flag">{{ p.bandera1 }}</span>
+                                            <span class="team-name">{{ p.t1 }}</span>
+                                        </div>
+
+                                        <div class="vs-text">VS</div>
+
+                                        <div class="team-block right">
+                                            <span class="team-name">{{ p.t2 }}</span>
+                                            <span class="team-flag">{{ p.bandera2 }}</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="predict-inputs">
+                                        {% set g1_key = p.id ~ "_g1" %}
+                                        {% set g2_key = p.id ~ "_g2" %}
+                                        <input type="number" id="{{ p.id }}_g1" name="g1" min="0" max="25"
+                                            placeholder="-" value="{{ datos.get(g1_key, '') }}" {% if not
+                                            estados_fases.get('Grupos', False) or is_locked %}disabled{% endif %}
+                                            oninput="checkEmpate('{{ p.id }}')">
+                                        <span>-</span>
+                                        <input type="number" id="{{ p.id }}_g2" name="g2" min="0" max="25"
+                                            placeholder="-" value="{{ datos.get(g2_key, '') }}" {% if not
+                                            estados_fases.get('Grupos', False) or is_locked %}disabled{% endif %}
+                                            oninput="checkEmpate('{{ p.id }}')">
+                                    </div>
+
+                                    {% set penales_key = p.id ~ "_penales" %}
+                                    {% set is_empate_previo = datos.get(g1_key, '') != '' and datos.get(g1_key, '')
+                                    ==
+                                    datos.get(g2_key, '') %}
+                                    <div class="penalties-section" id="penalties_{{ p.id }}"
+                                        style="display: {% if is_empate_previo %}flex{% else %}none{% endif %};">
+                                        <div class="penalty-team">
+                                            <span class="team-flag">{{ p.bandera1 }}</span>
+                                            <input type="radio" name="penales" value="{{ p.t1 }}"
+                                                class="penalty-checkbox" {% if datos.get(penales_key)==p.t1 %}checked{%
+                                                endif %} {% if not estados_fases.get('Grupos', False) or is_locked
+                                                %}disabled{% endif %}>
+                                        </div>
+                                        <div class="penalties-title">GANA EN<br>PENALES</div>
+                                        <div class="penalty-team">
+                                            <input type="radio" name="penales" value="{{ p.t2 }}"
+                                                class="penalty-checkbox" {% if datos.get(penales_key)==p.t2 %}checked{%
+                                                endif %} {% if not estados_fases.get('Grupos', False) or is_locked
+                                                %}disabled{% endif %}>
+                                            <span class="team-flag">{{ p.bandera2 }}</span>
+                                        </div>
+                                    </div>
+
+                                    {% if is_locked %}
+                                    {% set off_data = resultados_dict.get(p.id, {}) %}
+                                    <div
+                                        style="background-color: #f8d7da; color: #721c24; padding: 10px; border-radius: 8px; text-align: center; margin-top: 15px; font-weight: bold; border: 1px solid #f5c6cb;">
+                                        🔒 EVENTO FINALIZADO<br>
+                                        <span style="font-size: 1.1rem; color: #102a68;">Resultado Oficial: {{
+                                            off_data.get('g1', '-') }} - {{ off_data.get('g2', '-') }}{% if
+                                            off_data.get('winner') %} (P: {{ off_data.get('winner') }}){% endif
+                                            %}</span>
+
+                                        {% if p.id in puntos_por_partido %}
+                                        {% set pts_data = puntos_por_partido[p.id] %}
+                                        <div style="margin-top: 8px; font-weight: normal; font-size: 0.85rem;">
+                                            <span style="font-weight: bold; color: #102a68;">Puntos obtenidos: {{
+                                                pts_data.pts }}</span><br>
+                                            {% if pts_data.is_max %}
+                                            <span
+                                                style="color: #155724; background: #d4edda; padding: 3px 8px; border-radius: 6px; display: inline-block; margin-top: 4px; font-weight: 500;">🏆
+                                                ¡Felicitaciones alcanzaste la puntuacion máxima de {{ pts_data.pts }}
+                                                puntos!</span>
+                                            {% elif pts_data.pts > 0 %}
+                                            <span
+                                                style="color: #0c5460; background: #d1ecf1; padding: 3px 8px; border-radius: 6px; display: inline-block; margin-top: 4px; font-weight: 500;">👍
+                                                ¡Bien hecho! Sumaste {{ pts_data.pts }} puntos por acertar la
+                                                tendencia.</span>
+                                            {% else %}
+                                            <span
+                                                style="color: #856404; background: #fff3cd; padding: 3px 8px; border-radius: 6px; display: inline-block; margin-top: 4px; font-weight: 500;">😅
+                                                Ups, fallaste. ¡Mucha suerte para la próxima vez! 🍀</span>
+                                            {% endif %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    {% elif estados_fases.get('Grupos', False) %}
+                                    <button type="submit" class="save-btn">GUARDAR</button>
+                                    {% endif %}
+
+                                    <div id="status-{{ p.id }}" class="status-feedback"></div>
+                                </div>
+                            </form>
+                            {% endfor %}
+
+                            {% if fecha in ['11/06', '12/06', '23/06'] %}
+                            <div
+                                style="margin-top: 20px; text-align: center; border-radius: 10px; overflow: hidden; border: 1px solid #edf2f7;">
+                                <img src="/static/banner/PUBLICIDAD_PRODE.png" alt="Publicidad"
+                                    style="width: 100%; height: auto; display: block; object-fit: cover;">
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+
+                        <!-- Extra standalone banner card to fill the grid -->
+                        <div class="group-container"
+                            style="border-top: 5px solid #102a68; padding: 0; display: flex; align-items: stretch; justify-content: center; overflow: hidden;">
+                            <img src="/static/banner/PUBLICIDAD_PRODE.png" alt="Publicidad"
+                                style="width: 100%; height: 100%; object-fit: cover;">
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- TABS ELIMINATORIAS (Generado Dinámicamente) -->
+                {% for tab_name, phase_keys in [
+                ('dieciseisavos', ['Dieciseisavos']),
+                ('octavos', ['Octavos', 'Cuartos']),
+                ('finales', ['Semifinales', 'Final'])
+                ] %}
+                <div id="tab-{{ tab_name }}" class="phase-tab-content" style="display: none;">
+                    {% set active_key = 'Dieciseisavos' if tab_name == 'dieciseisavos' else ('Octavos' if tab_name ==
+                    'octavos' else 'Finales') %}
+                    {% set is_active = estados_fases.get(active_key, False) %}
+
+                    <div class="groups-grid">
+                        {% for phase_key in phase_keys %}
+                        {% if knockout_por_fase.get(phase_key) %}
+                        <div class="group-container" style="border-top: 5px solid #102a68;">
+                            <div class="group-header">{{ phase_key|upper }}</div>
+
+                            {% for p in knockout_por_fase[phase_key] %}
+                            {% set is_locked = p.id in partidos_cerrados %}
+                            <div
+                                style="text-align: center; color: #102a68; font-weight: 800; font-size: 0.95rem; margin-bottom: 5px; margin-top: 15px; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                                <span>📌 {{ phase_key }}</span>
+                                {% if is_locked %}
+                                <span
+                                    style="background-color: #dc3545; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-transform: none; letter-spacing: 0;">🔒
+                                    FINALIZADO</span>
+                                {% endif %}
+                            </div>
+                            <form class="match-card-form" hx-post="/predict/{{ p.id }}" hx-trigger="submit"
+                                hx-target="#status-{{ p.id }}" hx-swap="innerHTML">
+                                <div class="match-card" id="card_{{ p.id }}">
+                                    <div class="match-info">
+                                        <span>📅 {{ p.fecha }}</span>
+                                        <span>🏟️ {{ p.sede }}</span>
+                                    </div>
+
+                                    <div class="match-teams">
+                                        <div class="team-block">
+                                            <span class="team-flag">{{ p.bandera1 }}</span>
+                                            <span class="team-name">{{ p.t1 }}</span>
+                                        </div>
+
+                                        <div class="vs-text">VS</div>
+
+                                        <div class="team-block right">
+                                            <span class="team-name">{{ p.t2 }}</span>
+                                            <span class="team-flag">{{ p.bandera2 }}</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="predict-inputs">
+                                        {% set g1_key = p.id ~ "_g1" %}
+                                        {% set g2_key = p.id ~ "_g2" %}
+                                        <input type="number" id="{{ p.id }}_g1" name="g1" min="0" max="25"
+                                            placeholder="-" value="{{ datos.get(g1_key, '') }}" {% if not is_active or
+                                            is_locked %}disabled{% endif %} oninput="checkEmpate('{{ p.id }}')">
+                                        <span>-</span>
+                                        <input type="number" id="{{ p.id }}_g2" name="g2" min="0" max="25"
+                                            placeholder="-" value="{{ datos.get(g2_key, '') }}" {% if not is_active or
+                                            is_locked %}disabled{% endif %} oninput="checkEmpate('{{ p.id }}')">
+                                    </div>
+
+                                    {% set penales_key = p.id ~ "_penales" %}
+                                    {% set is_empate_previo = datos.get(g1_key, '') != '' and datos.get(g1_key, '') ==
+                                    datos.get(g2_key, '') %}
+                                    <div class="penalties-section" id="penalties_{{ p.id }}"
+                                        style="display: {% if is_empate_previo %}flex{% else %}none{% endif %};">
+                                        <div class="penalty-team">
+                                            <span class="team-flag">{{ p.bandera1 }}</span>
+                                            <input type="radio" name="penales" value="{{ p.t1 }}"
+                                                class="penalty-checkbox" {% if datos.get(penales_key)==p.t1 %}checked{%
+                                                endif %} {% if not is_active or is_locked %}disabled{% endif %}>
+                                        </div>
+                                        <div class="penalties-title">GANA EN<br>PENALES</div>
+                                        <div class="penalty-team">
+                                            <input type="radio" name="penales" value="{{ p.t2 }}"
+                                                class="penalty-checkbox" {% if datos.get(penales_key)==p.t2 %}checked{%
+                                                endif %} {% if not is_active or is_locked %}disabled{% endif %}>
+                                            <span class="team-flag">{{ p.bandera2 }}</span>
+                                        </div>
+                                    </div>
+
+                                    {% if is_locked %}
+                                    {% set off_data = resultados_dict.get(p.id, {}) %}
+                                    <div
+                                        style="background-color: #f8d7da; color: #721c24; padding: 10px; border-radius: 8px; text-align: center; margin-top: 15px; font-weight: bold; border: 1px solid #f5c6cb;">
+                                        🔒 EVENTO FINALIZADO<br>
+                                        <span style="font-size: 1.1rem; color: #102a68;">Resultado Oficial: {{
+                                            off_data.get('g1', '-') }} - {{ off_data.get('g2', '-') }}{% if
+                                            off_data.get('winner') %} (P: {{ off_data.get('winner') }}){% endif
+                                            %}</span>
+
+                                        {% if p.id in puntos_por_partido %}
+                                        {% set pts_data = puntos_por_partido[p.id] %}
+                                        <div style="margin-top: 8px; font-weight: normal; font-size: 0.85rem;">
+                                            <span style="font-weight: bold; color: #102a68;">Puntos obtenidos: {{
+                                                pts_data.pts }}</span><br>
+                                            {% if pts_data.is_max %}
+                                            <span
+                                                style="color: #155724; background: #d4edda; padding: 3px 8px; border-radius: 6px; display: inline-block; margin-top: 4px; font-weight: 500;">🏆
+                                                ¡Felicitaciones alcanzaste la puntuacion máxima de {{ pts_data.pts }}
+                                                puntos!</span>
+                                            {% elif pts_data.pts > 0 %}
+                                            <span
+                                                style="color: #0c5460; background: #d1ecf1; padding: 3px 8px; border-radius: 6px; display: inline-block; margin-top: 4px; font-weight: 500;">👍
+                                                ¡Bien hecho! Sumaste {{ pts_data.pts }} puntos por acertar la
+                                                tendencia.</span>
+                                            {% else %}
+                                            <span
+                                                style="color: #856404; background: #fff3cd; padding: 3px 8px; border-radius: 6px; display: inline-block; margin-top: 4px; font-weight: 500;">😅
+                                                Ups, fallaste. ¡Mucha suerte para la próxima vez! 🍀</span>
+                                            {% endif %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    {% elif is_active %}
+                                    <button type="submit" class="save-btn">GUARDAR</button>
+                                    {% endif %}
+
+                                    <div id="status-{{ p.id }}" class="status-feedback"></div>
+                                </div>
+                            </form>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+
+            </div>
+
+            <!-- Script de Tabs Basico y Validación de Empate -->
+            <script>
+                function showTab(tabId) {
+                    // Ocultar todos los contenidos
+                    const contents = document.querySelectorAll('.phase-tab-content');
+                    contents.forEach(c => c.style.display = 'none');
+
+                    // Quitar clase active de todos los tabs (header y mobile)
+                    const allTabs = document.querySelectorAll('.tab');
+                    allTabs.forEach(t => t.classList.remove('active'));
+
+                    // Mostrar contenido seleccionado
+                    const targetContent = document.getElementById(tabId);
+                    if (targetContent) targetContent.style.display = 'block';
+
+                    // Activar todos los botones que apuntan a este tabId
+                    allTabs.forEach(t => {
+                        const onClickAttr = t.getAttribute('onclick');
+                        if (onClickAttr && onClickAttr.includes(tabId)) {
+                            t.classList.add('active');
+                        }
+                    });
+                }
+
+                function checkEmpate(matchId) {
+                    const g1 = document.getElementById(matchId + '_g1').value;
+                    const g2 = document.getElementById(matchId + '_g2').value;
+                    const penaltiesDiv = document.getElementById('penalties_' + matchId);
+                    const radios = penaltiesDiv.querySelectorAll('input[type="radio"]');
+
+                    if (g1 !== "" && g2 !== "" && g1 === g2) {
+                        penaltiesDiv.style.display = 'flex';
+                        // Si ambos tienen radio, marcamos uno por defecto (opcional)
+                        // O dejamos que el usuario elija.
+                    } else {
+                        penaltiesDiv.style.display = 'none';
+                        // Desmarcar radios si se quita el empate
+                        radios.forEach(radio => radio.checked = false);
+                    }
+                }
+
+                // Htmx intercept config to clear status messages on new submission
+                // document.body.addEventListener('htmx:beforeRequest', function(evt) { ... });
+            </script>
+        </main>
+    </div>
+
+    <script>
+        function toggleSidebar() {
+            document.getElementById('app-sidebar').classList.toggle('open');
+            document.querySelector('.sidebar-overlay').classList.toggle('open');
+        }
+    </script>
+    <script src="/static/js/background.js?v=4"></script>
+</body>
+
+</html>
