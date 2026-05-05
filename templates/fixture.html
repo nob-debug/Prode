@@ -18,34 +18,62 @@
         }
 
         /* Nav styles */
-        .nav-container {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 1000;
+        .top-app-bar {
             display: flex;
-            gap: 10px;
-            background: rgba(255, 255, 255, 0.9);
-            padding: 10px 20px;
-            border-radius: 30px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            align-items: center;
+            justify-content: space-between;
+            background: linear-gradient(90deg, #021F59 0%, #102a68 100%);
+            color: white;
+            padding: 8px 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1001;
+            height: 65px;
         }
 
-        .nav-container a {
-            text-decoration: none;
-            color: #102a68;
+        .top-app-bar-left,
+        .top-app-bar-right {
+            display: flex;
+            align-items: center;
+            flex: 1;
+        }
+
+        .top-app-bar-right {
+            justify-content: flex-end;
+        }
+
+        .top-app-title {
+            font-size: 1.1rem;
             font-weight: 700;
+            font-family: 'Montserrat', sans-serif;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin: 0;
+            white-space: nowrap;
+        }
+
+        .volver-btn {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
             padding: 8px 16px;
             border-radius: 20px;
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 0.9rem;
             transition: all 0.2s;
-            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
 
-        .nav-container a:hover,
-        .nav-container a.active {
-            background: #102a68;
-            color: white;
+        .volver-btn:hover {
+            background: #F2AB27;
+            color: #102a68;
+            border-color: #F2AB27;
         }
 
         /* Grass Background */
@@ -304,6 +332,12 @@
             justify-content: center;
             font-size: 0.65rem;
             font-weight: bold;
+            z-index: 10;
+        }
+
+        .col-left .pts-indicator {
+            right: auto;
+            left: -25px;
         }
 
         /* Left side lines connecting rightward */
@@ -373,13 +407,54 @@
 </head>
 
 <body>
-    <div class="split-bg"></div>
+    <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+    <div class="app-layout">
+        <aside class="sidebar" id="app-sidebar">
+            <button class="close-btn" onclick="toggleSidebar()">✕</button>
+            <div class="sponsor-logo">
+                <img src="/static/img/sponsor-logo.png" alt="Sponsor Logo" style="max-width: 100%; border-radius: 8px;"
+                    onerror="this.onerror=null; this.src='https://via.placeholder.com/200x80?text=SPONSOR';">
+            </div>
 
-    <div class="nav-container">
-        <a href="/">🏠 Inicio</a>
-        <a href="/ranking">📈 Ranking</a>
-        <a href="/fixture" class="active">🗓️ Bracket</a>
-        <a href="/perfil">👤 Perfil</a>
+            <div class="user-card">
+                <div class="user-avatar">👤</div>
+                <div class="user-name">{{ username }}</div>
+                <div class="user-stats">
+                    <span class="stat-badge pts">⭐ {{ sidebar_data.puntos }} pts</span>
+                    <span class="stat-badge rank">🏆 Posición: {{ sidebar_data.posicion }}°</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="/">🏠 Mis Predicciones</a>
+                <a href="/fixture" class="active">🗓️ Fixture Mundial</a>
+                <a href="/ranking">📈 Ranking Global</a>
+                <a href="/perfil">🎁 Elegí tus Premios</a>
+                <a href="/reglas">📜 Reglas</a>
+                <a href="#" hx-post="/logout" class="logout-btn">🚪 Salir</a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <div class="split-bg"></div>
+
+            <div class="top-app-bar">
+                <!-- Logo Centrado -->
+                <div
+                    style="position: absolute; left: 50%; transform: translateX(-50%); height: 100%; display: flex; align-items: center; z-index: 10;">
+                    <img src="/static/banner/logo-nuevo.png" alt="Sponsor Logo"
+                        style="height: 70px; width: 150px; object-fit: contain;">
+                </div>
+                <div class="top-app-bar-left">
+                    <button class="menu-trigger-btn" onclick="toggleSidebar()">☰</button>
+                    <div class="top-app-title">🗓️ Fixture Mundial</div>
+                </div>
+
+        <div class="top-app-bar-right">
+            <a href="/" class="volver-btn">
+                🏠 Volver al Inicio
+            </a>
+        </div>
     </div>
 
     <div class="bracket-container">

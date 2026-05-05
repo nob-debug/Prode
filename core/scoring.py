@@ -56,8 +56,8 @@ class ScoringEngine:
                 "penalty_bonus": 1
             },
             "phase_multipliers": {
-                "group": 1.0, "round_of_32": 1.25, "round_of_16": 1.5,
-                "quarter": 2.0, "semi": 3.0, "third_place": 2.0, "final": 4.0
+                "group": 1.0, "round_of_32": 1.0, "round_of_16": 1.0,
+                "quarter": 1.0, "semi": 1.0, "third_place": 1.0, "final": 1.0
             }
         }
 
@@ -151,14 +151,22 @@ class ScoringEngine:
 
         is_exact = (o_g1 == p_g1 and o_g2 == p_g2)
         is_tie = (real_winner_str == "draw")
+        
+        guessed_winner = False
+        if off_winner and pred_winner and off_winner == pred_winner:
+            guessed_winner = True
 
         if real_winner_str == pred_winner_str:
             if is_exact:
-                base_points = self.rules.get("exact_score", 6)
-                if is_tie and pred_winner and off_winner and pred_winner == off_winner:
-                    base_points += self.rules.get("penalty_bonus", 1)
+                if is_tie and guessed_winner:
+                    base_points = 7 # Empate Exacto + Ganador por Empate
+                else:
+                    base_points = 6 # Resultado Exacto + Ganador
             else:
-                base_points = self.rules.get("winner_only", 3)
+                if is_tie and guessed_winner:
+                    base_points = 4 # Empate no Exacto + Pais ganador en Penales
+                else:
+                    base_points = 3 # Ganador (Tendencia)
 
         # Multiplicador Fase
         phase = self.match_phases.get(match_id, 'group')

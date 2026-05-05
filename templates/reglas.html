@@ -15,39 +15,82 @@
             padding: 20px;
         }
 
+        .top-app-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: linear-gradient(90deg, #021F59 0%, #102a68 100%);
+            color: white;
+            padding: 8px 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1001;
+            height: 65px;
+        }
+
+        .top-app-bar-left,
+        .top-app-bar-right {
+            display: flex;
+            align-items: center;
+            flex: 1;
+        }
+
+        .top-app-bar-right {
+            justify-content: flex-end;
+            gap: 15px;
+        }
+
+        .top-app-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            font-family: 'Montserrat', sans-serif;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin: 0;
+            white-space: nowrap;
+        }
+
+        .top-app-score {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+
+        .volver-btn {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 8px 16px;
+            border-radius: 20px;
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .volver-btn:hover {
+            background: #F2AB27;
+            color: #102a68;
+            border-color: #F2AB27;
+        }
+
         .container {
             max-width: 900px;
-            margin: 0 auto;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 2rem;
-            color: #102a68;
-        }
-
-        .navbar {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin-bottom: 25px;
-            flex-wrap: wrap;
-        }
-
-        .navbar a {
-            text-decoration: none;
-            color: #3182ce;
-            font-weight: 600;
-            padding: 8px 16px;
-            border-radius: 6px;
-            background: white;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-            transition: all 0.2s;
-        }
-
-        .navbar a:hover {
-            background: #ebf8ff;
-            transform: translateY(-1px);
+            margin: 85px auto 40px auto;
         }
 
         .content-card {
@@ -94,80 +137,359 @@
             display: block;
             margin-bottom: 5px;
         }
+
+        /* Accordion CSS */
+        .accordion {
+            width: 100%;
+            margin-bottom: 30px;
+        }
+
+        .accordion-item {
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            border-left: 4px solid #102a68;
+        }
+
+        .accordion-header {
+            width: 100%;
+            text-align: left;
+            background: #fff;
+            color: #102a68;
+            border: none;
+            padding: 18px 20px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.3s;
+        }
+
+        .accordion-header:hover {
+            background: #f8fafc;
+        }
+
+        .accordion-header.active {
+            background: #edf2f7;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .accordion-header::after {
+            content: '▼';
+            font-size: 0.8rem;
+            color: #4a5568;
+        }
+
+        .accordion-header.active::after {
+            content: '▲';
+        }
+
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out, padding 0.3s ease;
+            background: white;
+            padding: 0 20px;
+        }
+
+        .accordion-content.show {
+            padding: 20px;
+        }
+
+        .accordion-content ul {
+            padding-left: 20px;
+            margin: 0 0 10px 0;
+            color: #4a5568;
+            line-height: 1.6;
+        }
+
+        .accordion-content li {
+            margin-bottom: 10px;
+        }
+
+        .accordion-content p {
+            margin: 0 0 10px 0;
+            color: #4a5568;
+            line-height: 1.6;
+        }
+
+        .accordion-content strong {
+            color: #2d3748;
+        }
     </style>
 </head>
 
 <body>
+    <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+    <div class="app-layout">
+        <aside class="sidebar" id="app-sidebar">
+            <button class="close-btn" onclick="toggleSidebar()">✕</button>
+            <div class="sponsor-logo">
+                <img src="/static/img/sponsor-logo.png" alt="Sponsor Logo" style="max-width: 100%; border-radius: 8px;"
+                    onerror="this.onerror=null; this.src='https://via.placeholder.com/200x80?text=SPONSOR';">
+            </div>
 
-    <div class="container">
-        <div class="header">
-            <h1>📜 Generalidades y Reglas</h1>
-            <p>Todo lo que necesitas saber sobre el torneo.</p>
-        </div>
-
-        <div class="navbar">
-            <a href="/">🏠 Mis Predicciones</a>
-            <a href="/ranking">📈 Ranking Global</a>
-            <a href="/fixture">🗓️ Fixture Mundial</a>
-            <a href="/perfil">👤 Mi Perfil</a>
-        </div>
-
-        <div class="content-card">
-            <h2>Puntajes Regulares</h2>
-
-            <div class="rule-item">
-                <div class="rule-icon">🎯</div>
-                <div class="rule-text">
-                    <strong>Marcador Exacto (6 Puntos)</strong>
-                    <p>Si aciertas exactamente los goles que hace cada equipo, ganas el máximo de puntos. (Ej: Predices
-                        2-1 y el partido sale 2-1).</p>
+            <div class="user-card">
+                <div class="user-avatar">👤</div>
+                <div class="user-name">{{ username }}</div>
+                <div class="user-stats">
+                    <span class="stat-badge pts">⭐ {{ sidebar_data.puntos }} pts</span>
+                    <span class="stat-badge rank">🏆 Posición: {{ sidebar_data.posicion }}°</span>
                 </div>
             </div>
 
-            <div class="rule-item">
-                <div class="rule-icon">🤝</div>
-                <div class="rule-text">
-                    <strong>Acierto de Tendencia (3 Puntos)</strong>
-                    <p>Si aciertas quién gana (o el empate) pero no el resultado exacto, sumas 3 puntos. (Ej: Predices
-                        2-0 y el partido sale 1-0).</p>
-                </div>
-            </div>
+            <nav class="sidebar-nav">
+                <a href="/">🏠 Mis Predicciones</a>
+                <a href="/fixture">🗓️ Fixture Mundial</a>
+                <a href="/ranking">📈 Ranking Global</a>
+                <a href="/perfil">🎁 Elegí tus Premios</a>
+                <a href="/reglas" class="active">📜 Reglas</a>
+                <a href="#" hx-post="/logout" class="logout-btn">🚪 Salir</a>
+            </nav>
+        </aside>
 
-            <div class="rule-item">
-                <div class="rule-icon">⚖️</div>
-                <div class="rule-text">
-                    <strong>Bonus de Penales (+1 Punto)</strong>
-                    <p>En caso de acertar un empate durante las rondas KO, si también adivinas quién gana en los tiros
-                        desde el punto penal, obtienes un punto extra.</p>
-                </div>
-            </div>
-
-            <div class="rule-item">
-                <div class="rule-icon">✖️</div>
-                <div class="rule-text">
-                    <strong>Multiplicadores de Fase</strong>
-                    <p>Los puntos base se multiplican según la importancia del partido: Grupos (x1), Dieciseisavos
-                        (x1.25), Octavos (x1.5), Cuartos (x2.0), Semifinales (x3.0), Final (x4.0).</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="content-card" style="border-top-color: #d4af37;">
-            <h2>Premios Oficiales 🏆</h2>
-            <p>Los premios serán entregados a los tres primeros lugares de la tabla al finalizar el Mundial 2026.</p>
-            <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-top: 20px;">
+        <main class="main-content">
+            <div class="top-app-bar">
+                <!-- Logo Centrado -->
                 <div
-                    style="flex: 1; min-width: 250px; background: #fffdf5; border: 1px solid #ecc94b; border-radius: 8px; padding: 20px; text-align: center;">
-                    <h3 style="color: #b7791f; margin-top:0;">🥇 1° Puesto</h3>
-                    <p style="font-size: 1.2rem; font-weight: bold; color: #2d3748;">Apple iPhone 16 Pro Max</p>
-                    <p style="color: #718096; font-size: 0.9rem;">+ Trofeo Oficial del Torneo.</p>
+                    style="position: absolute; left: 50%; transform: translateX(-50%); height: 100%; display: flex; align-items: center; z-index: 10;">
+                    <img src="/static/banner/logo-nuevo.png" alt="Sponsor Logo"
+                        style="height: 70px; width: 150px; object-fit: contain;">
                 </div>
-                <!-- Añadir más premios en el futuro -->
-            </div>
-        </div>
+                <div class="top-app-bar-left">
+                    <button class="menu-trigger-btn" onclick="toggleSidebar()">☰</button>
+                    <div class="top-app-title">📜 Reglamento</div>
+                </div>
 
+        <div class="top-app-bar-right">
+            <div class="top-app-score">
+                ⭐ {{ sidebar_data.puntos }} pts
+            </div>
+            <a href="/" class="volver-btn">
+                🏠 Inicio
+            </a>
+        </div>
     </div>
 
+    <div class="container">
+
+        <div class="accordion">
+            <h2 style="color: #2d3748; margin-bottom: 20px;">🏆 Reglamento Oficial: Prode Mundial FIFA 2026</h2>
+
+            <div class="accordion-item">
+                <button class="accordion-header">1. Sistema de Puntuación</button>
+                <div class="accordion-content">
+                    <p>El puntaje se asigna según la precisión de tu pronóstico. No es acumulativo por partido (se toma
+                        el puntaje más alto alcanzado):</p>
+                    <ul>
+                        <li><strong>Resultado Exacto + Ganador:</strong> 6 puntos (Ej: Apostaste 2-1 y el partido
+                            terminó 2-1).</li>
+                        <li><strong>Ganador (Tendencia):</strong> 3 puntos (Ej: Apostaste que ganaba el Equipo A y ganó,
+                            pero con otro marcador).</li>
+                        <li><strong>Empate Exacto + Ganador por Empate:</strong> 7 puntos (Ej: Apostaste 1-1 y terminó
+                            en penales a favor del pais que seleccionaste).</li>
+                        <li><strong>Empate no Exacto en resultado + Pais ganador en Penales:</strong> 4
+                            puntos (Ej: Apostaste empate y terminaron 0-0 o 2-2) y el pais que colocaste a ganar , Gano
+                            en Penales.</li>
+                        <li><strong>Error Total:</strong> 0 puntos.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <button class="accordion-header">2. El Cierre de Pronósticos (Regla de Oro)</button>
+                <div class="accordion-content">
+                    <ul>
+                        <li>Todos los partidos se bloquean automáticamente <strong>1 hora antes</strong> del pitido
+                            inicial.</li>
+                        <li><strong>Aviso de Seguridad Protocolar:</strong> Debido a la fluctuación cuántica de los
+                            servidores y para garantizar la integridad absoluta de la base de datos frente a las
+                            interferencias electromagnéticas del estadio, el sistema entrará en modo de "Blindaje
+                            Cronométrico" 60 minutos antes de cada encuentro.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <button class="accordion-header">3. Inmutabilidad de Jugadas</button>
+                <div class="accordion-content">
+                    <p>Una vez que el partido ha sido bloqueado por el sistema o has guardado tu jugada definitiva antes
+                        del cierre, <strong>no se permiten cambios</strong>. El destino está sellado.</p>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <button class="accordion-header">4. Fase de Eliminación Directa</button>
+                <div class="accordion-content">
+                    <p><strong>¿Qué pasa en la Fase de Eliminación Directa?</strong></p>
+                    <p>En el Mundial, a partir de octavos de final, hay prórroga y penales. Te recordamos que:</p>
+                    <ul>
+                        <li>Se cuenta el <strong>resultado a los 90 minutos</strong> (incluyendo el tiempo de
+                            descuento).</li>
+                        <li>Esta es la regla estándar para mantener la opción del "Empate" viva en los pronósticos.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <button class="accordion-header">5. Desempates para los Premios</button>
+                <div class="accordion-content">
+                    <p>Tienes premios para los 3 primeros lugares. ¿Qué pasa si dos personas empatan en puntos al final
+                        del torneo? El criterio de desempate será el siguiente, en este orden:</p>
+                    <ul>
+                        <li><strong>1º Criterio:</strong> Mayor cantidad de "Resultados Exactos" acertados.</li>
+                        <li><strong>2º Criterio:</strong> Mayor cantidad de "Empates Exactos" acertados.</li>
+                        <li><strong>3º Criterio:</strong> Fecha de inscripción (el que se unió primero al prode).</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <button class="accordion-header">6. Los "Obsequios de Consolación"</button>
+                <div class="accordion-content">
+                    <p>Premios especiales y menciones de honor para los casos particulares:</p>
+                    <ul>
+                        <!-- <li><strong>El "Casi-Casi":</strong> Al que más veces acertó el ganador pero nunca el resultado
+                            exacto.</li> -->
+                        <li><strong>La "Cuchara de Madera":</strong> Al que quedó último en la tabla (siempre y cuando
+                            haya participado en todos los partidos).</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const headers = document.querySelectorAll('.accordion-header');
+
+                // Open first tab by default
+                if (headers.length > 0) {
+                    const firstHeader = headers[0];
+                    const firstContent = firstHeader.nextElementSibling;
+                    firstHeader.classList.add('active');
+                    firstContent.classList.add('show');
+                    firstContent.style.maxHeight = "500px"; // generous initially
+                }
+
+                headers.forEach(header => {
+                    header.addEventListener('click', () => {
+                        const content = header.nextElementSibling;
+                        const isActive = header.classList.contains('active');
+
+                        // Close all
+                        document.querySelectorAll('.accordion-header').forEach(h => {
+                            h.classList.remove('active');
+                            h.nextElementSibling.classList.remove('show');
+                            h.nextElementSibling.style.maxHeight = null;
+                        });
+
+                        // Open if wasn't active
+                        if (!isActive) {
+                            header.classList.add('active');
+                            content.classList.add('show');
+                            content.style.maxHeight = content.scrollHeight + 40 + "px"; // padding offset
+                        }
+                    });
+                });
+            });
+        </script>
+
+        <!-- Galerías de Premios por Categoría -->
+        <h3 style="margin-top: 40px; color: #102a68; border-bottom: 2px solid #edf2f7; padding-bottom: 10px; font-family: 'Montserrat', sans-serif; text-transform: uppercase; font-size: 1.1rem; letter-spacing: 1px;">
+            🎁 Galería de Premios Oficiales
+        </h3>
+
+        <div style="display: flex; flex-direction: column; gap: 25px; margin-bottom: 40px;">
+
+            {# Macro para renderizar una galería horizontal en el perfil #}
+            {% macro render_galeria_perfil(titulo, subtitle, emoji, cat_name, border_color, accent_bg) %}
+            <div style="background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-left: 8px solid {{ border_color }}; display: flex; min-height: 220px; width: 100%;">
+                
+                <!-- Lado Izquierdo: Info de Categoría (Reducido) -->
+                <div style="background: {{ accent_bg }}; width: 120px; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 10px; color: white; flex-shrink: 0;">
+                    <div style="font-size: 1.8rem; margin-bottom: 5px;">{{ emoji }}</div>
+                    <h2 style="margin: 0; font-size: 0.9rem; font-family: 'Montserrat', sans-serif; text-align: center; line-height: 1.2; text-transform: uppercase;">{{ titulo }}</h2>
+                    <p style="margin: 5px 0 0 0; font-weight: 700; color: rgba(255,255,255,0.85); text-transform: uppercase; font-size: 0.6rem; letter-spacing: 1px; text-align: center;">{{ subtitle }}</p>
+                </div>
+
+                <!-- Lado Derecho: Slideshow de Premios (Imagen Más Grande) -->
+                <div class="prize-slideshow" style="flex: 1; position: relative; overflow: hidden; background: #fff;">
+                    {% set cat_premios = [] %}
+                    {% for p in premios %}{% if p.categoria == cat_name %}{% set _ = cat_premios.append(p) %}{% endif %}{% endfor %}
+                    
+                    {% for p in cat_premios %}
+                    <div class="p-slide-{{ cat_name|replace(' ', '-') }} {% if loop.first %}active{% endif %}" 
+                         style="position: absolute; width: 100%; height: 100%; display: {% if loop.first %}flex{% else %}none{% endif %}; align-items: center; padding: 15px 30px; transition: opacity 0.5s;">
+                        
+                        <div style="flex: 0 0 160px; height: 180px; display: flex; align-items: center; justify-content: center; background: #f8fafc; border-radius: 10px; border: 1px solid #edf2f7; padding: 10px;">
+                            <img src="{{ p.imagen_url }}" style="max-height: 160px; max-width: 140px; object-fit: contain;">
+                        </div>
+
+                        <div style="flex: 1; padding-left: 20px; overflow: hidden; min-width: 0;">
+                            <h4 style="margin: 0; color: #102a68; font-size: 1.35rem; font-family: 'Montserrat', sans-serif; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ p.nombre }}</h4>
+                            <p style="margin: 2px 0 8px 0; color: #64748b; font-size: 0.95rem; line-height: 1.2; height: 1.2rem; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">{{ p.descripcion }}</p>
+                            
+                            <!-- Bloque de Progreso 100% Vertical -->
+                            <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 5px; width: 100%;">
+                                <div style="color: #102a68; font-weight: 900; font-size: 0.85rem; background: #ebf8ff; padding: 3px 10px; border-radius: 20px; border: 1px solid #90cdf4; width: fit-content; text-transform: uppercase;">
+                                    Por Tabla de Posiciones
+                                </div>
+                                <div style="font-weight: 800; color: #4a5568; font-size: 0.9rem; padding-left: 5px;">
+                                    Se otorga al finalizar en {{ p.categoria }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div style="height: 100%; display: flex; align-items: center; justify-content: center; color: #a0aec0; font-style: italic;">Próximamente...</div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endmacro %}
+
+            {{ render_galeria_perfil('1ER LUGAR', 'AL CAMPEÓN', '🥇', '1er Lugar', '#d4af37', 'linear-gradient(135deg, #d4af37 0%, #b8860b 100%)') }}
+            {{ render_galeria_perfil('2DO LUGAR', 'SUB-CAMPEÓN', '🥈', '2do Lugar', '#a0aec0', 'linear-gradient(135deg, #a0aec0 0%, #718096 100%)') }}
+            {{ render_galeria_perfil('3ER LUGAR', 'EL BRONCE', '🥉', '3er Lugar', '#cd7f32', 'linear-gradient(135deg, #cd7f32 0%, #8b4513 100%)') }}
+            {{ render_galeria_perfil('CONSUELO', 'PREMIO PARTICIPACIÓN', '🎁', 'Premio Consuelo', '#38a169', 'linear-gradient(135deg, #38a169 0%, #276749 100%)') }}
+        </div>
+
+        <script>
+            function startSlideshow(className) {
+                let current = 0;
+                const slides = document.querySelectorAll('.' + className);
+                if (slides.length <= 1) return;
+
+                setInterval(() => {
+                    slides[current].style.display = 'none';
+                    slides[current].classList.remove('active');
+                    current = (current + 1) % slides.length;
+                    slides[current].style.display = 'flex';
+                    slides[current].classList.add('active');
+                }, 4000);
+            }
+
+            document.addEventListener('DOMContentLoaded', () => {
+                startSlideshow('p-slide-1er-Lugar');
+                startSlideshow('p-slide-2do-Lugar');
+                startSlideshow('p-slide-3er-Lugar');
+                startSlideshow('p-slide-Premio-Consuelo');
+            });
+        </script>
+
+    </div>
+        </main>
+    </div>
+
+    <script>
+        function toggleSidebar() {
+            document.getElementById('app-sidebar').classList.toggle('open');
+            document.querySelector('.sidebar-overlay').classList.toggle('open');
+        }
+    </script>
 </body>
 
 </html>

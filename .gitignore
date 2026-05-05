@@ -1,4 +1,5 @@
 __pycache__/
+**/__pycache__/
 *.py[cod]
 *$py.class
 .env
@@ -9,6 +10,8 @@ ENV/
 .vscode/
 .idea/
 .DS_Store
-db.sqlite3
+*.sqlite3
+*.db
+*.csv
 static/banner/*
 !static/banner/.gitkeep
