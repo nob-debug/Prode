@@ -17,7 +17,7 @@
         }
 
         .container {
-            max-width: 800px;
+            max-width: 1200px;
             margin: auto;
             background: white;
             padding: 30px;
@@ -108,6 +108,36 @@
             margin-bottom: 12px;
             font-weight: 500;
         }
+
+        /* ESTADOS DE PARTIDO */
+        .match-card.state-open {
+            border-left: 6px solid #28a745;
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.08);
+        }
+
+        .match-card.state-closed {
+            border-left: 6px solid #f6ad55;
+            box-shadow: 0 4px 12px rgba(246, 173, 85, 0.08);
+            background-color: #fffaf0;
+        }
+
+        .match-card.state-finalized {
+            border-left: 6px solid #3182ce;
+            box-shadow: 0 4px 12px rgba(49, 130, 206, 0.08);
+            background-color: #f7fafc;
+        }
+        
+        .state-label {
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            padding: 2px 8px;
+            border-radius: 12px;
+        }
+        
+        .state-label.open { color: #28a745; background: #e6fffa; border: 1px solid #b2f5ea; }
+        .state-label.closed { color: #dd6b20; background: #fffaf0; border: 1px solid #feebc8; }
+        .state-label.finalized { color: #3182ce; background: #ebf8ff; border: 1px solid #bee3f8; }
 
         .match-teams {
             display: flex;
@@ -254,6 +284,91 @@
             font-size: 0.85rem;
             line-height: 1.2;
         }
+
+        /* PODIUM STYLES */
+        .podium-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .podium-card {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border: 2px solid #edf2f7;
+            transition: transform 0.2s;
+        }
+        .podium-card:hover { transform: translateY(-5px); }
+        .podium-icon { font-size: 2.5rem; margin-bottom: 10px; display: block; }
+        .podium-rank { font-weight: 800; color: #102a68; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 1px; margin-bottom: 5px; }
+        .podium-user { font-weight: 700; font-size: 1.1rem; color: #2d3748; margin-bottom: 5px; display: block; }
+        .podium-points { font-weight: 800; color: #e53e3e; font-size: 1.2rem; }
+
+        /* SECCIONES COLAPSABLES */
+        .collapsible-header {
+            background-color: #f8fafc;
+            color: #102a68;
+            cursor: pointer;
+            padding: 15px 20px;
+            width: 100%;
+            border: 1px solid #e2e8f0;
+            text-align: left;
+            outline: none;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background-color 0.2s;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+        }
+
+        .collapsible-header:hover {
+            background-color: #edf2f7;
+        }
+
+        .collapsible-header:after {
+            content: '▼';
+            font-size: 0.8rem;
+            color: #718096;
+            transition: transform 0.3s;
+        }
+
+        .collapsible-header.active {
+            background-color: #ebf8ff;
+            border-bottom-left-radius: 0;
+            border-bottom-right-radius: 0;
+            margin-bottom: 0;
+        }
+
+        .collapsible-header.active:after {
+            transform: rotate(180deg);
+        }
+
+        .collapsible-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+            background-color: #fff;
+            border: 1px solid #e2e8f0;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            margin-bottom: 20px;
+        }
+        
+        .collapsible-content.show {
+            max-height: 3500px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
     </style>
 </head>
 
@@ -262,71 +377,180 @@
     <div class="container">
         <h1>🛠️ Panel de Control del Torneo</h1>
 
+        <!-- SECCIÓN PERFIL DE RANKING EN VIVO (SOLO ADMIN) -->
+        <div style="background: #f8fafc; border-radius: 15px; padding: 25px; margin-bottom: 40px; border: 1px solid #e2e8f0;">
+            <h2 style="margin-top: 0; display: flex; align-items: center; gap: 10px;">
+                🏆 Clasificación en Vivo <span style="font-size: 0.9rem; color: #64748b; font-weight: normal;">(Actualizado al último cálculo)</span>
+            </h2>
+            <div class="podium-grid">
+                <!-- 1er Lugar -->
+                <div class="podium-card" style="border-color: #f2ab27; background: linear-gradient(to bottom, #fffcf5, white);">
+                    <span class="podium-icon">🥇</span>
+                    <div class="podium-rank">1er Lugar</div>
+                    <span class="podium-user">{{ podium.primero.display_name if podium.primero else '---' }}</span>
+                    <div class="podium-points">{{ podium.primero.puntos_totales if podium.primero else 0 }} pts</div>
+                </div>
+                <!-- 2do Lugar -->
+                <div class="podium-card" style="border-color: #a0aec0;">
+                    <span class="podium-icon">🥈</span>
+                    <div class="podium-rank">2do Lugar</div>
+                    <span class="podium-user">{{ podium.segundo.display_name if podium.segundo else '---' }}</span>
+                    <div class="podium-points">{{ podium.segundo.puntos_totales if podium.segundo else 0 }} pts</div>
+                </div>
+                <!-- 3er Lugar -->
+                <div class="podium-card" style="border-color: #ed8936;">
+                    <span class="podium-icon">🥉</span>
+                    <div class="podium-rank">3er Lugar</div>
+                    <span class="podium-user">{{ podium.tercero.display_name if podium.tercero else '---' }}</span>
+                    <div class="podium-points">{{ podium.tercero.puntos_totales if podium.tercero else 0 }} pts</div>
+                </div>
+                <!-- El Casi-Casi -->
+                <div class="podium-card" style="border-style: dashed; border-color: #4a5568;">
+                    <span class="podium-icon">🎯</span>
+                    <div class="podium-rank">El "Casi-Casi"</div>
+                    <span class="podium-user">{{ podium.casi_casi.display_name if podium.casi_casi else '---' }}</span>
+                    <div class="podium-points">{{ podium.casi_casi.puntos_totales if podium.casi_casi else 0 }} pts</div>
+                </div>
+                <!-- La Cuchara de Madera -->
+                <div class="podium-card" style="border-color: #822727; background: #fff5f5;">
+                    <span class="podium-icon">🥄</span>
+                    <div class="podium-rank">Cuchara de Madera</div>
+                    <span class="podium-user">{{ podium.madera.display_name if podium.madera else '---' }}</span>
+                    <div class="podium-points">{{ podium.madera.puntos_totales if podium.madera else 0 }} pts</div>
+                </div>
+            </div>
+        </div>
+
+        <hr style="border-top: 2px solid #e2e8f0; margin: 40px 0;">
+
+        <!-- SECCIÓN TABLA GENERAL DE PARTICIPANTES -->
+        <div style="background: white; border-radius: 15px; padding: 25px; margin-bottom: 40px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;">
+            <h2 style="margin-top: 0; color: #102a68; margin-bottom: 20px;">👥 Tabla General de Participantes</h2>
+            <div style="overflow-x: auto; overflow-y: auto; max-height: 500px; border: 1px solid #e2e8f0; border-radius: 8px;">
+                <table style="width: 100%; border-collapse: separate; border-spacing: 0; text-align: left; min-width: 800px;">
+                    <thead style="position: sticky; top: 0; background-color: #f8fafc; z-index: 10; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                        <tr style="color: #4a5568; font-size: 0.9rem;">
+                            <th style="padding: 12px 15px; border-bottom: 2px solid #e2e8f0;">#</th>
+                            <th style="padding: 12px 15px; border-bottom: 2px solid #e2e8f0;">ID - Nombre Real</th>
+                            <th style="padding: 12px 15px; border-bottom: 2px solid #e2e8f0;">Alias (Prode)</th>
+                            <th style="padding: 12px 15px; text-align: center; border-bottom: 2px solid #e2e8f0;">Puntos</th>
+                            <th style="padding: 12px 15px; text-align: center; border-bottom: 2px solid #e2e8f0;">Jugados</th>
+                            <th style="padding: 12px 15px; text-align: center; border-bottom: 2px solid #e2e8f0;">Aciertos <span style="color: #38a169;">✅</span></th>
+                            <th style="padding: 12px 15px; text-align: center; border-bottom: 2px solid #e2e8f0;">Fallos <span style="color: #e53e3e;">❌</span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for u in usuarios_rank %}
+                        <tr style="border-bottom: 1px solid #edf2f7; font-size: 0.95rem;">
+                            <td style="padding: 12px 15px; font-weight: bold; color: #718096;">{{ loop.index }}</td>
+                            <td style="padding: 12px 15px;">
+                                {% set display_parts = u.display_name.split('(') %}
+                                {% if display_parts|length > 1 %}
+                                    {{ display_parts[0] | trim }}
+                                {% else %}
+                                    <span style="color: #a0aec0; font-style: italic;">No registrado en CSV</span>
+                                {% endif %}
+                            </td>
+                            <td style="padding: 12px 15px; font-weight: 600; color: #2d3748;">{{ u.username }}</td>
+                            <td style="padding: 12px 15px; text-align: center; font-weight: 800; color: #e53e3e;">{{ u.puntos_totales }}</td>
+                            <td style="padding: 12px 15px; text-align: center; color: #4a5568;">{{ u.jugados }}</td>
+                            <td style="padding: 12px 15px; text-align: center; color: #38a169; font-weight: bold;">{{ u.aciertos }}</td>
+                            <td style="padding: 12px 15px; text-align: center; color: #e53e3e; font-weight: bold;">{{ u.fallos }}</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="7" style="padding: 20px; text-align: center; color: #a0aec0;">No hay usuarios registrados aún.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px;">
             <!-- Columna Izquierda: Fases -->
             <div>
-                <h2>Gestión de Fases</h2>
-
-                <!-- Fase de Grupos -->
-                <div class="config-card">
-                    <div>
-                        <h3>Fase de Grupos</h3>
-                        <p>Estado actual: {% if estados.grupos %}Activa{% else %}Cerrada{% endif %}</p>
-                        <!-- Div donde HTMX dibujará la respuesta -->
-                        <div id="resultado-fase-grupos"></div>
+                <button class="collapsible-header" onclick="toggleCollapsible(this)">⚙️ Gestión de Fases</button>
+                <div class="collapsible-content">
+                    {% for f_name, f_key in [
+                        ('Fase de Grupos', 'Grupos'),
+                        ('Dieciseisavos', 'Dieciseisavos'),
+                        ('Octavos de Final', 'Octavos'),
+                        ('Cuartos de Final', 'Cuartos'),
+                        ('Semifinales (Semis)', 'Semis'),
+                        ('Final y 3er Puesto (Finales)', 'Finales')
+                    ] %}
+                    <div class="config-card">
+                        <div>
+                            <h3>{{ f_name }}</h3>
+                            <p>Estado actual: {% if estados.get(f_key) %}Activa{% else %}Cerrada{% endif %}</p>
+                            <div id="resultado-fase-{{ f_key|lower }}"></div>
+                        </div>
+                        <form hx-post="/admin/config/fase" hx-target="#resultado-fase-{{ f_key|lower }}">
+                            <input type="hidden" name="fase" value="{{ f_key|lower }}">
+                            <label>
+                                <input type="checkbox" name="active" value="True" {% if estados.get(f_key) %}checked{% endif %}>
+                                Habilitar
+                            </label>
+                            <br><br>
+                            <button type="submit">Actualizar</button>
+                        </form>
                     </div>
-                    <form hx-post="/admin/config/fase" hx-target="#resultado-fase-grupos">
-                        <input type="hidden" name="fase" value="grupos">
-                        <label>
-                            <input type="checkbox" name="active" value="True" {% if estados.grupos %}checked{% endif %}>
-                            Habilitar
-                        </label>
-                        <br><br>
-                        <button type="submit">Actualizar</button>
-                    </form>
-                </div>
-
-                <!-- Fase Dieciseisavos -->
-                <div class="config-card">
-                    <div>
-                        <h3>Dieciseisavos</h3>
-                        <p>Estado actual: {% if estados.dieciseisavos %}Activa{% else %}Cerrada{% endif %}</p>
-                        <div id="resultado-fase-16"></div>
-                    </div>
-                    <form hx-post="/admin/config/fase" hx-target="#resultado-fase-16">
-                        <input type="hidden" name="fase" value="dieciseisavos">
-                        <label>
-                            <input type="checkbox" name="active" value="True" {% if estados.dieciseisavos %}checked{%
-                                endif %}>
-                            Habilitar
-                        </label>
-                        <br><br>
-                        <button type="submit">Actualizar</button>
-                    </form>
+                    {% endfor %}
                 </div>
             </div>
 
             <!-- Columna Derecha: Banners -->
             <div>
-                <h2>Gestión de Banners (Slideshow)</h2>
-                <p>Sube imágenes para el carrusel principal. Se recomienda formato apaisado (16:9).</p>
-
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                    {% for i in range(1, 5) %}
-                    <div class="config-card" style="display: block; margin-bottom: 0; padding: 10px;">
-                        <h3 style="margin-top: 5px; font-size: 1rem;">Banner Slide {{ i }}</h3>
-                        <div id="resultado-banner-{{ i }}" style="font-size: 0.8rem;"></div>
-                        <form hx-post="/admin/config/banner" hx-target="#resultado-banner-{{ i }}"
-                            hx-encoding="multipart/form-data" style="margin-top: 10px;">
-                            <input type="hidden" name="slot" value="{{ i }}">
-                            <input type="file" name="image" accept="image/*" required
-                                style="max-width: 100%; font-size: 0.8rem;">
-                            <br><br>
-                            <button type="submit" style="font-size: 0.8rem; padding: 5px 10px;">Subir Imagen {{ i
-                                }}</button>
-                        </form>
+                <button class="collapsible-header" onclick="toggleCollapsible(this)">🖼️ Gestión de Banners y Patrocinios</button>
+                <div class="collapsible-content">
+                    <h3 style="margin-top: 0; color: #102a68;">Auspiciantes Fijos</h3>
+                    <p style="font-size: 0.85rem; color: #666; margin-bottom: 15px;">Aparecen en los espacios de publicidad fijos en el fixture.</p>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px;">
+                        <div class="config-card" style="display: block; margin-bottom: 0; padding: 10px; border-left: 5px solid #F2AB27;">
+                            <h4 style="margin-top: 5px; font-size: 0.9rem;">Banner Login Superior</h4>
+                            <div id="resultado-banner-login" style="font-size: 0.8rem;"></div>
+                            <form hx-post="/admin/config/banner_login" hx-target="#resultado-banner-login"
+                                hx-encoding="multipart/form-data" style="margin-top: 10px;">
+                                <input type="file" name="image" accept="image/*" required
+                                    style="max-width: 100%; font-size: 0.8rem;">
+                                <button type="submit" style="font-size: 0.75rem; padding: 4px 8px; width: 100%; margin-top: 10px;">Subir</button>
+                            </form>
+                        </div>
+                        
+                        {% for i in range(1, 5) %}
+                        <div class="config-card" style="display: block; margin-bottom: 0; padding: 10px; border-left: 5px solid #102a68;">
+                            <h4 style="margin-top: 5px; font-size: 0.9rem;">Auspiciante Fijo {{ i }}</h4>
+                            <div id="resultado-fijo-{{ i }}" style="font-size: 0.8rem;"></div>
+                            <form hx-post="/admin/config/banner_fijo" hx-target="#resultado-fijo-{{ i }}"
+                                hx-encoding="multipart/form-data" style="margin-top: 10px;">
+                                <input type="hidden" name="slot" value="{{ i }}">
+                                <input type="file" name="image" accept="image/*" required
+                                    style="max-width: 100%; font-size: 0.8rem;">
+                                <button type="submit" style="font-size: 0.75rem; padding: 4px 8px; width: 100%; margin-top: 10px;">Subir</button>
+                            </form>
+                        </div>
+                        {% endfor %}
                     </div>
-                    {% endfor %}
+
+                    <hr style="border: none; border-top: 1px solid #edf2f7; margin: 20px 0;">
+
+                    <h3 style="margin-top: 0; color: #102a68;">Carrusel Principal (Slideshow)</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        {% for i in range(1, 5) %}
+                        <div class="config-card" style="display: block; margin-bottom: 0; padding: 10px;">
+                            <h4 style="margin-top: 5px; font-size: 0.9rem;">Banner Slide {{ i }}</h4>
+                            <div id="resultado-banner-{{ i }}" style="font-size: 0.8rem;"></div>
+                            <form hx-post="/admin/config/banner" hx-target="#resultado-banner-{{ i }}"
+                                hx-encoding="multipart/form-data" style="margin-top: 10px;">
+                                <input type="hidden" name="slot" value="{{ i }}">
+                                <input type="file" name="image" accept="image/*" required
+                                    style="max-width: 100%; font-size: 0.8rem;">
+                                <button type="submit" style="font-size: 0.75rem; padding: 4px 8px; width: 100%; margin-top: 10px;">Subir</button>
+                            </form>
+                        </div>
+                        {% endfor %}
+                    </div>
                 </div>
             </div>
         </div>
@@ -355,11 +579,22 @@
                     <div class="group-container" style="border-top: 5px solid #102a68; margin-bottom: 30px;">
                         <div class="group-header">Grupos: Día {{ fecha }}</div>
                         {% for p in partidos %}
-                        <div class="match-card" id="admin_card_{{ p.id }}">
+                        {% set is_fin = p.id in partidos_finalizados %}
+                        {% set is_cerr = p.id in partidos_cerrados %}
+                        <div class="match-card {% if is_fin %}state-finalized{% elif is_cerr %}state-closed{% else %}state-open{% endif %}" id="admin_card_{{ p.id }}">
                             <div class="match-header-info">
                                 <div>
                                     <span>📅 {{ p.fecha }}</span>
                                     <span>🏟️ {{ p.sede }}</span>
+                                </div>
+                                <div id="status_badge_{{ p.id }}">
+                                    {% if is_fin %}
+                                    <span class="state-label finalized">🏁 FINALIZADO</span>
+                                    {% elif is_cerr %}
+                                    <span class="state-label closed">🔒 CERRADO</span>
+                                    {% else %}
+                                    <span class="state-label open">🟢 ABIERTO</span>
+                                    {% endif %}
                                 </div>
                             </div>
                             <div class="match-teams">
@@ -420,30 +655,21 @@
                     <div class="group-container" style="border-top: 5px solid #102a68; margin-bottom: 30px;">
                         <div class="group-header">Eliminatorias: {{ phase_key }}</div>
                         {% for p in partidos %}
-                        <div class="match-card" id="admin_card_{{ p.id }}">
+                        {% set is_fin = p.id in partidos_finalizados %}
+                        {% set is_cerr = p.id in partidos_cerrados %}
+                        <div class="match-card {% if is_fin %}state-finalized{% elif is_cerr %}state-closed{% else %}state-open{% endif %}" id="admin_card_{{ p.id }}">
                             <div class="match-header-info">
                                 <div>
                                     <span>📅 {{ p.fecha }}</span>
                                     <span>🏟️ {{ p.sede }}</span>
                                 </div>
                                 <div id="status_badge_{{ p.id }}">
-                                    {% set asig = knockout_asignaciones.get(p.id) %}
-                                    {% if p.id in partidos_finalizados %}
-                                    <span
-                                        style="background-color: #1a73e8; color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold;">🏁
-                                        FINALIZADO</span>
-                                    {% elif p.id in partidos_cerrados %}
-                                    <span
-                                        style="background-color: #dc3545; color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold;">🔒
-                                        CERRADO</span>
-                                    {% elif asig %}
-                                    <span
-                                        style="background-color: #28a745; color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold;">✅
-                                        ABIERTO</span>
+                                    {% if is_fin %}
+                                    <span class="state-label finalized">🏁 FINALIZADO</span>
+                                    {% elif is_cerr %}
+                                    <span class="state-label closed">🔒 CERRADO</span>
                                     {% else %}
-                                    <span
-                                        style="background-color: #6c757d; color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold;">⏳
-                                        PENDIENTE</span>
+                                    <span class="state-label open">🟢 ABIERTO</span>
                                     {% endif %}
                                 </div>
                             </div>
@@ -487,65 +713,69 @@
                                 </div>
                             </div>
 
-                            {% if p.id not in partidos_cerrados and p.id not in partidos_finalizados %}
-                            <!-- ETAPA 2: ABIERTO (Botón para cerrar) -->
-                            <form hx-post="/admin/match/lock" hx-target="#admin_result_{{ p.id }}">
+                            {% if p.id not in partidos_cerrados %}
+                            <form hx-post="/admin/knockout/unassign" style="text-align: center; margin-bottom: 10px;">
                                 <input type="hidden" name="match_id" value="{{ p.id }}">
-                                <button type="submit" class="lock-btn">Cerrar Partido (Bloquear Predicciones)</button>
+                                <button type="submit" style="background: none; border: none; color: #1a73e8; font-size: 0.85rem; cursor: pointer; text-decoration: underline; font-weight: bold;">
+                                    ✏️ Cambiar Equipos
+                                </button>
                             </form>
-                            {% elif p.id in partidos_cerrados and p.id not in partidos_finalizados %}
-                            <!-- ETAPA 3: CERRADO (Cargar resultados y finalizar) -->
+                            {% endif %}
+
+                            {% if p.id not in partidos_finalizados %}
+                            <!-- ETAPA 2 y 3: ABIERTO O CERRADO (Mostrar inputs y botones) -->
                             <div id="form_stage3_{{ p.id }}">
                                 <div class="predict-inputs">
                                     {% set off_data = resultados_dict.get(p.id, {}) %}
-                                    <input type="number" id="g1_{{ p.id }}" name="g1" required min="0"
-                                        value="{{ off_data.get('g1', '') }}">
+                                    <input type="number" id="g1_{{ p.id }}" name="g1" required min="0" value="{{ off_data.get('g1', '') }}">
                                     <span>-</span>
-                                    <input type="number" id="g2_{{ p.id }}" name="g2" required min="0"
-                                        value="{{ off_data.get('g2', '') }}">
+                                    <input type="number" id="g2_{{ p.id }}" name="g2" required min="0" value="{{ off_data.get('g2', '') }}">
                                 </div>
                                 <div class="penalties-section" style="display: flex;">
                                     <div class="team-block">
                                         <span class="team-flag">{{ asig.bandera1 }}</span>
-                                        <input type="radio" name="winner_{{ p.id }}" value="{{ asig.t1 }}" {% if
-                                            off_data.get('winner')==asig.t1 %}checked{% endif %}>
+                                        <input type="radio" name="winner_{{ p.id }}" value="{{ asig.t1 }}" {% if off_data.get('winner')==asig.t1 %}checked{% endif %}>
                                     </div>
                                     <div class="penalties-title">GANA EN<br>PENALES</div>
                                     <div class="team-block right">
-                                        <input type="radio" name="winner_{{ p.id }}" value="{{ asig.t2 }}" {% if
-                                            off_data.get('winner')==asig.t2 %}checked{% endif %}>
+                                        <input type="radio" name="winner_{{ p.id }}" value="{{ asig.t2 }}" {% if off_data.get('winner')==asig.t2 %}checked{% endif %}>
                                         <span class="team-flag">{{ asig.bandera2 }}</span>
                                     </div>
                                 </div>
 
-                                <div
-                                    style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
-                                    <button type="button" class="save-btn"
-                                        style="background-color: #28a745; margin-top: 0;" hx-post="/admin/match/save"
+                                <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 15px;">
+                                    <button type="button" class="save-btn" style="background-color: #102a68; margin-top: 0;"
+                                        hx-post="/admin/match/save"
                                         hx-vals='js:{"match_id": "{{ p.id }}", "g1": document.getElementById("g1_{{ p.id }}").value, "g2": document.getElementById("g2_{{ p.id }}").value, "winner": document.querySelector("input[name=\u0027winner_{{ p.id }}\u0027]:checked")?.value || ""}'
                                         hx-target="#admin_result_{{ p.id }}">
-                                        Guardar Resultados
+                                        Guardar Resultado
                                     </button>
 
-                                    <button type="button" class="save-btn"
-                                        style="background-color: #1a73e8; margin-top: 0;"
+                                    {% if p.id not in partidos_cerrados %}
+                                    <form hx-post="/admin/match/lock" hx-target="#admin_result_{{ p.id }}" style="margin: 0;">
+                                        <input type="hidden" name="match_id" value="{{ p.id }}">
+                                        <button type="submit" class="lock-btn" style="margin-top: 0; background-color: #dc3545;">
+                                            Bloquear Partido
+                                        </button>
+                                    </form>
+                                    {% else %}
+                                    <button type="button" class="save-btn" style="background-color: #28a745; margin-top: 0;"
                                         hx-post="/admin/knockout/finish"
                                         hx-vals='js:{"match_id": "{{ p.id }}", "g1": document.getElementById("g1_{{ p.id }}").value, "g2": document.getElementById("g2_{{ p.id }}").value, "winner": document.querySelector("input[name=\u0027winner_{{ p.id }}\u0027]:checked")?.value || ""}'
                                         hx-target="#admin_result_{{ p.id }}">
-                                        Finalizar Evento
+                                        🏁 Finalizar Partido
                                     </button>
+                                    {% endif %}
                                 </div>
                             </div>
                             {% else %}
                             <!-- ETAPA 4: FINALIZADO (Mostrar resultado estático) -->
                             <div class="predict-inputs" style="background: #e9ecef; border: none;">
                                 {% set off_data = resultados_dict.get(p.id, {}) %}
-                                <span style="font-size: 1.5rem; font-weight: bold; color: #102a68;">{{
-                                    off_data.get('g1') }} - {{ off_data.get('g2') }}</span>
+                                <span style="font-size: 1.5rem; font-weight: bold; color: #102a68;">{{ off_data.get('g1') }} - {{ off_data.get('g2') }}</span>
                             </div>
                             {% if off_data.get('winner') %}
-                            <p style="text-align: center; font-weight: bold; color: #1a73e8; margin-top: 5px;">🏆
-                                Ganador: {{ off_data.get('winner') }}</p>
+                            <p style="text-align: center; font-weight: bold; color: #1a73e8; margin-top: 5px;">🏆 Ganador: {{ off_data.get('winner') }}</p>
                             {% endif %}
                             {% endif %}
                             {% endif %}
@@ -578,9 +808,156 @@
 
     </div>
 
+    <hr>
+
+    <h2>🎁 Gestión de Premios</h2>
+    <p>Añade y configura los premios que verán los usuarios en su perfil y ranking.</p>
+
+    <div class="config-card" style="flex-direction: column; align-items: flex-start;">
+        <h3>Agregar Nuevo Premio</h3>
+        <div id="resultado-premio-add" style="width: 100%; margin-bottom: 15px;"></div>
+        <form hx-post="/admin/premio/add" hx-target="#resultado-premio-add" hx-encoding="multipart/form-data"
+            style="width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <div>
+                <label style="font-weight: bold; font-size: 0.9em;">Nombre del Premio</label><br>
+                <input type="text" name="nombre" required style="width: 100%; padding: 8px; margin-top: 5px;"
+                    placeholder="Ej: Play 5">
+            </div>
+            <div>
+                <label style="font-weight: bold; font-size: 0.9em;">Descripción (Opcional)</label><br>
+                <input type="text" name="descripcion" style="width: 100%; padding: 8px; margin-top: 5px;"
+                    placeholder="Ej: Consola Sony Playstation 5">
+            </div>
+            <div style="display: none;">
+                <input type="number" name="puntos_requeridos" value="0" style="display: none;">
+            </div>
+            <div>
+                <label style="font-weight: bold; font-size: 0.9em;">Posición Ganadora (Orden)</label><br>
+                <input type="number" name="orden" required min="0" value="0" style="width: 100%; padding: 8px; margin-top: 5px;"
+                    title="Ej: 1, 2, 10. Coloca 0 para Premio Consuelo">
+                <small style="color: gray;">Coloca 0 para Premio Consuelo.</small>
+            </div>
+            <div style="grid-column: span 1;">
+                <label style="font-weight: bold; font-size: 0.9em;">Imagen del Premio</label><br>
+                <input type="file" name="image" accept="image/*" required style="margin-top: 5px;">
+            </div>
+            <div style="grid-column: span 2; text-align: right;">
+                <button type="submit" style="background-color: #1a73e8;">➕ Añadir Premio</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Lista de premios cargados -->
+    <div
+        style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; margin-bottom: 30px;">
+        {% for premio in premios %}
+        <div
+            style="border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; background: white; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+            <div
+                style="height: 150px; background-color: #f8fafc; display: flex; align-items: center; justify-content: center;">
+                <img src="{{ premio.imagen_url }}" alt="{{ premio.nombre }}"
+                    style="max-height: 100%; max-width: 100%; object-fit: contain;">
+            </div>
+            <div style="padding: 15px;">
+                <h4 style="margin: 0; color: #102a68;">{{ premio.nombre }}</h4>
+                <div style="margin-top: 5px;">
+                    <span
+                        style="background: #1a73e8; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: bold;">{{
+                        premio.categoria }}</span>
+                </div>
+                <p style="margin: 5px 0; font-size: 0.8em; color: #64748b;">{{ premio.descripcion }}</p>
+                <p style="margin: 10px 0; font-weight: bold; color: #e53e3e;">Premio por Posición</p>
+                <form hx-post="/admin/premio/delete"
+                    onsubmit="return confirm('¿Estás seguro de eliminar este premio?');">
+                    <input type="hidden" name="premio_id" value="{{ premio.id }}">
+                    <button type="submit" style="background-color: #dc3545; width: 100%; padding: 5px;">🗑️
+                        Eliminar</button>
+                </form>
+            </div>
+        </div>
+        {% else %}
+        <p style="color: gray; font-style: italic;">No hay premios cargados todavía.</p>
+        {% endfor %}
+    </div>
+
+    <hr style="border-top: 2px dashed #e53e3e; margin: 40px 0;">
+
+    <h2 style="color: #c53030;">⚠️ Zona de Peligro</h2>
+    <p style="color: #c53030; font-weight: 500;">Opciones destructivas para el torneo. Úsalas con extrema precaución.
+    </p>
+
+    <div style="display: flex; flex-direction: column; gap: 15px;">
+        <div class="config-card" style="border-color: #fbd38d; background-color: #fffff0; margin-bottom: 0;">
+            <div>
+                <h3 style="color: #dd6b20; margin-top: 0;">🧹 Reiniciar Resultados Oficiales</h3>
+                <p style="font-size: 0.85em; color: #dd6b20;">
+                    Borra <strong>SOLO los resultados oficiales de los partidos reales</strong> y vuelve los puntajes a
+                    cero.<br>
+                    <strong>Las predicciones de los usuarios se conservarán intactas.</strong>
+                </p>
+                <div id="resultado-reinicio-parcial"></div>
+            </div>
+            <form hx-post="/admin/reiniciar_oficiales" hx-target="#resultado-reinicio-parcial" hx-swap="innerHTML"
+                onsubmit="return confirm('¿Seguro que deseas borrar solo los resultados cargados?\n\nLos puntajes se resentearán a 0 pero las predicciones de los usuarios NO SE BORRARÁN.');">
+                <button type="submit" style="background-color: #dd6b20; font-weight: bold;">🧹 Limpiar
+                    Oficiales</button>
+            </form>
+        </div>
+
+        <div class="config-card" style="border-color: #feb2b2; background-color: #fffaf0; margin-bottom: 0;">
+            <div>
+                <h3 style="color: #dd6b20; margin-top: 0;">🏆 Finalizar Torneo</h3>
+                <p style="font-size: 0.85em; color: #dd6b20;">
+                    Da por terminado el PRODE. Una vez que lo actives todos los jugadores podrán ver su posición final
+                    y la opción de reclamar premio estará disponible en el panel de inicio.
+                </p>
+                <div style="font-weight: bold; margin: 10px 0; color: {% if torneo_finalizado %}#28a745{% else %}#6c757d{% endif %};">
+                    ESTADO ACTUAL: {% if torneo_finalizado %} FINALIZADO Y PREMIOS LIBERADOS {% else %} EN JUEGO {% endif %}
+                </div>
+                <div id="resultado-finalizar-torneo"></div>
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                <form hx-post="/admin/toggle_torneo_finalizado" hx-target="#resultado-finalizar-torneo" hx-swap="innerHTML"
+                    onsubmit="return confirm('¿Deseas cambiar el estado de finalización del torneo?');" style="flex: 1;">
+                    <button type="submit" style="background-color: {% if torneo_finalizado %}#6c757d{% else %}#28a745{% endif %}; font-weight: bold; width: 100%;">
+                        {% if torneo_finalizado %}🔄 Reabrir Torneo{% else %}🏆 Dar por Finalizado{% endif %}
+                    </button>
+                </form>
+                
+                <a href="/admin/descargar_reclamos_csv" target="_blank" style="flex: 1; text-decoration: none;">
+                    <button type="button" style="background-color: #3182ce; font-weight: bold; width: 100%; height: 100%;">
+                        📥 Descargar Tabla de Reclamos (Excel/CSV)
+                    </button>
+                </a>
+            </div>
+        </div>
+
+        <div class="config-card" style="border-color: #feb2b2; background-color: #fff5f5; margin-bottom: 0;">
+            <div>
+                <h3 style="color: #c53030; margin-top: 0;">🛑 Reiniciar Torneo Completo</h3>
+                <p style="font-size: 0.85em; color: #c53030;">
+                    Borra todas las predicciones de los usuarios, limpia los resultados oficiales, y pone todos los
+                    puntos a 0. <br>
+                    <strong>Atención:</strong> Las cuentas de los usuarios no se borrarán.
+                </p>
+                <div id="resultado-reinicio"></div>
+            </div>
+            <form hx-post="/admin/reiniciar_datos" hx-target="#resultado-reinicio" hx-swap="innerHTML"
+                onsubmit="return confirm('¡ADVERTENCIA!\n\nEstás a punto de borrar todas las predicciones y poner todos los puntajes a 0.\n\nEsta acción es irreversible. ¿Deseas continuar?');">
+                <button type="submit" style="background-color: #e53e3e; font-weight: bold;">☢️ Ejecutar Reinicio
+                    Total</button>
+            </form>
+        </div>
+
     </div>
 
     <script>
+        function toggleCollapsible(btn) {
+            btn.classList.toggle("active");
+            var content = btn.nextElementSibling;
+            content.classList.toggle("show");
+        }
+
         function showTab(tabId) {
             // Ocultar todos los contenidos de pestañas
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));

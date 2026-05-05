@@ -438,6 +438,7 @@
                 </div>
 
                 <div class="tabs header-tabs">
+                    <img src="/static/banner/logo-nuevo.png" alt="Sponsor Logo" style="height: 70px; width: 150px; object-fit: contain; margin-right: 15px;">
                     <div class="tab active" onclick="showTab('tab-grupos')">⚽ Grupos</div>
                     <div class="tab" onclick="showTab('tab-dieciseisavos')">🚨 Dieciseisavos</div>
                     <div class="tab" onclick="showTab('tab-octavos')">🔥 Octavos</div>
@@ -454,6 +455,68 @@
                 <!-- Header y subtítulo eliminados según solicitud -->
 
                 <!-- Crawler eliminado según solicitud -->
+
+                {% if torneo_finalizado %}
+                <div style="background: linear-gradient(135deg, #102a68 0%, #1e3a8a 100%); margin-bottom: 30px; border-radius: 15px; padding: 25px; box-shadow: 0 10px 25px rgba(16, 42, 104, 0.3); color: white; position: relative; overflow: hidden; border: 2px solid #F2AB27;">
+                    <div style="position: absolute; top: -20px; right: -20px; font-size: 8rem; opacity: 0.1; transform: rotate(15deg);">🏆</div>
+                    
+                    <h2 style="margin-top: 0; color: #F2AB27 !important; font-size: 2rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.7); display: flex; align-items: center; gap: 10px;">
+                        🏁 ¡EL PRODE HA FINALIZADO!
+                    </h2>
+                    
+                    <div style="background: rgba(255,255,255,0.1); border-radius: 10px; padding: 15px; margin-bottom: 20px; display: inline-block;">
+                        <div style="font-size: 1.2rem;">Tu puntuación final: <strong style="color: #F2AB27; font-size: 1.5rem;">{{ sidebar_data.puntos }} pts</strong></div>
+                        <div style="font-size: 1.2rem;">Tu posición definitiva: <strong style="color: #48bb78; font-size: 1.5rem;">#{{ sidebar_data.posicion }}</strong></div>
+                    </div>
+
+                    {% if reclamo_actual %}
+                    <!-- Módulo fijo post-reclamación -->
+                    <div style="background-color: #d4edda; color: #155724; padding: 20px; border-radius: 12px; border: 2px solid #28a745; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                        <div style="display: flex; align-items: center; gap: 20px;">
+                            <div style="font-size: 4rem;">🚚🎁</div>
+                            <div>
+                                <h3 style="margin-top: 0; color: #155724; font-size: 1.5rem;">¡Premio Seleccionado! 🎉</h3>
+                                <p style="font-size: 1.1rem; margin-bottom: 5px;">Elegiste: <strong>{{ reclamo_actual.premio_obj.nombre }}</strong></p>
+                                <p style="margin: 0;">En los próximos <strong>30 días</strong> nos pondremos en contacto internamente mediante tu legajo registrado para coordinar la entrega. ¡Muchas gracias por jugar al máximo nivel! ⚽🙌</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <!-- Formulario de Selección -->
+                    <div style="background: white; border-radius: 12px; padding: 20px; color: #2d3748;">
+                        <h3 style="margin-top: 0; color: #102a68; border-bottom: 2px solid #edf2f7; padding-bottom: 10px;">🎁 Reclama tu Premio</h3>
+                        {% if premios_elegibles|length > 0 %}
+                            <p style="font-weight: 500;">De acuerdo a tu posición en la tabla, eres elegible para seleccionar uno de los siguientes premios.</p>
+                            
+                            <div id="reclamar-resultado"></div>
+                            
+                            <form hx-post="/reclamar_premio" hx-target="#reclamar-resultado" hx-swap="innerHTML" style="margin-top: 20px;" onsubmit="return confirm('¿Confirmas tu elección? ¡No puede modificarse más adelante!');">
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                                    {% for p in premios_elegibles %}
+                                    <label style="border: 2px solid #edf2f7; border-radius: 8px; padding: 10px; cursor: pointer; transition: all 0.2s; display: block; text-align: center; background: #f8fafc;" onmouseover="this.style.borderColor='#3182ce'" onmouseout="this.style.borderColor='#edf2f7'">
+                                        <input type="radio" name="premio_id" value="{{ p.id }}" required style="margin-bottom: 10px; transform: scale(1.2);">
+                                        <div style="height: 100px; display: flex; align-items: center; justify-content: center; margin-bottom: 10px;">
+                                            <img src="{{ p.imagen_url }}" alt="{{ p.nombre }}" style="max-height: 100%; max-width: 100%; object-fit: contain;">
+                                        </div>
+                                        <div style="font-weight: bold; color: #102a68;">{{ p.nombre }}</div>
+                                        <div style="font-size: 0.8rem; color: #718096; margin-top: 5px;">{{ p.categoria }}</div>
+                                    </label>
+                                    {% endfor %}
+                                </div>
+                                
+                                <button type="submit" style="background-color: #28a745; color: white; border: none; padding: 12px 25px; border-radius: 8px; font-weight: bold; font-size: 1.1rem; cursor: pointer; width: 100%; text-transform: uppercase; box-shadow: 0 4px 6px rgba(40,167,69,0.3);">
+                                    🚀 Confirmar Regalo
+                                </button>
+                            </form>
+                        {% else %}
+                            <div style="background-color: #fff3cd; color: #856404; padding: 15px; border-radius: 8px; border: 1px solid #ffeeba; text-align: center;">
+                                🙏 Lo sentimos, en este orden no hay premios generados que correspondan a tu posición actualmente.
+                            </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
 
                 <!-- Banner Slideshow -->
                 <div class="slideshow-container">
@@ -536,52 +599,67 @@
                                         </div>
                                     </div>
 
+                                    {% set g1_key = p.id ~ "_g1" %}
+                                    {% set g2_key = p.id ~ "_g2" %}
+                                    {% set penales_key = p.id ~ "_penales" %}
+
+                                    {% if not is_locked %}
                                     <div class="predict-inputs">
-                                        {% set g1_key = p.id ~ "_g1" %}
-                                        {% set g2_key = p.id ~ "_g2" %}
                                         <input type="number" id="{{ p.id }}_g1" name="g1" min="0" max="25"
                                             placeholder="-" value="{{ datos.get(g1_key, '') }}" {% if not
-                                            estados_fases.get('Grupos', False) or is_locked %}disabled{% endif %}
+                                            estados_fases.get('Grupos', False) %}disabled{% endif %}
                                             oninput="checkEmpate('{{ p.id }}')">
                                         <span>-</span>
                                         <input type="number" id="{{ p.id }}_g2" name="g2" min="0" max="25"
                                             placeholder="-" value="{{ datos.get(g2_key, '') }}" {% if not
-                                            estados_fases.get('Grupos', False) or is_locked %}disabled{% endif %}
+                                            estados_fases.get('Grupos', False) %}disabled{% endif %}
                                             oninput="checkEmpate('{{ p.id }}')">
                                     </div>
 
-                                    {% set penales_key = p.id ~ "_penales" %}
-                                    {% set is_empate_previo = datos.get(g1_key, '') != '' and datos.get(g1_key, '')
-                                    ==
-                                    datos.get(g2_key, '') %}
+                                    {% set is_empate_previo = datos.get(g1_key, '') != '' and datos.get(g1_key, '') == datos.get(g2_key, '') %}
                                     <div class="penalties-section" id="penalties_{{ p.id }}"
                                         style="display: {% if is_empate_previo %}flex{% else %}none{% endif %};">
                                         <div class="penalty-team">
                                             <span class="team-flag">{{ p.bandera1 }}</span>
                                             <input type="radio" name="penales" value="{{ p.t1 }}"
                                                 class="penalty-checkbox" {% if datos.get(penales_key)==p.t1 %}checked{%
-                                                endif %} {% if not estados_fases.get('Grupos', False) or is_locked
+                                                endif %} {% if not estados_fases.get('Grupos', False)
                                                 %}disabled{% endif %}>
                                         </div>
                                         <div class="penalties-title">GANA EN<br>PENALES</div>
                                         <div class="penalty-team">
                                             <input type="radio" name="penales" value="{{ p.t2 }}"
                                                 class="penalty-checkbox" {% if datos.get(penales_key)==p.t2 %}checked{%
-                                                endif %} {% if not estados_fases.get('Grupos', False) or is_locked
+                                                endif %} {% if not estados_fases.get('Grupos', False)
                                                 %}disabled{% endif %}>
                                             <span class="team-flag">{{ p.bandera2 }}</span>
                                         </div>
                                     </div>
+                                    {% endif %}
 
                                     {% if is_locked %}
                                     {% set off_data = resultados_dict.get(p.id, {}) %}
+                                    {% set is_finalized = off_data.get('g1') is not none %}
                                     <div
-                                        style="background-color: #f8d7da; color: #721c24; padding: 10px; border-radius: 8px; text-align: center; margin-top: 15px; font-weight: bold; border: 1px solid #f5c6cb;">
-                                        🔒 EVENTO FINALIZADO<br>
-                                        <span style="font-size: 1.1rem; color: #102a68;">Resultado Oficial: {{
-                                            off_data.get('g1', '-') }} - {{ off_data.get('g2', '-') }}{% if
-                                            off_data.get('winner') %} (P: {{ off_data.get('winner') }}){% endif
-                                            %}</span>
+                                        style="background-color: {% if is_finalized %}#e2e8f0{% else %}#fffaf0{% endif %}; color: {% if is_finalized %}#2d3748{% else %}#dd6b20{% endif %}; padding: 10px; border-radius: 8px; text-align: center; margin-top: 15px; font-weight: bold; border: 1px solid {% if is_finalized %}#cbd5e0{% else %}#feebc8{% endif %};">
+                                        {% if is_finalized %}🏁 FINALIZADO{% else %}🔒 EN JUEGO - ESPERANDO RESULTADOS{% endif %}<br>
+                                        
+                                        <div style="display: flex; justify-content: space-around; align-items: center; font-size: 0.9rem; margin-top: 8px; padding: 8px 0; border-top: 1px solid rgba(0,0,0,0.1); border-bottom: 1px solid rgba(0,0,0,0.1); background-color: rgba(255,255,255,0.5); border-radius: 4px;">
+                                            <div style="flex: 1; text-align: center; border-right: 1px solid rgba(0,0,0,0.1);">
+                                                <span style="color: #4a5568; font-size: 0.70rem; display: block; text-transform: uppercase;">Tu Pronóstico 🍀</span>
+                                                <span style="color: #102a68; font-size: 1.2rem;">{{ datos.get(g1_key, '-') }} - {{ datos.get(g2_key, '-') }}</span>
+                                                {% if datos.get(penales_key) %}
+                                                <br><span style="font-size: 0.7rem; color: #4a5568;">(P: {{ datos.get(penales_key) }})</span>
+                                                {% endif %}
+                                            </div>
+                                            <div style="flex: 1; text-align: center;">
+                                                <span style="color: #4a5568; font-size: 0.70rem; display: block; text-transform: uppercase;">Resultado Oficial ⚽</span>
+                                                <span style="color: #102a68; font-size: 1.2rem;">{{ off_data.get('g1', '-') }} - {{ off_data.get('g2', '-') }}</span>
+                                                {% if off_data.get('winner') %}
+                                                <br><span style="font-size: 0.7rem; color: #4a5568;">(P: {{ off_data.get('winner') }})</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
 
                                         {% if p.id in puntos_por_partido %}
                                         {% set pts_data = puntos_por_partido[p.id] %}
@@ -618,8 +696,10 @@
                             {% if fecha in ['11/06', '12/06', '23/06'] %}
                             <div
                                 style="margin-top: 20px; text-align: center; border-radius: 10px; overflow: hidden; border: 1px solid #edf2f7;">
-                                <img src="/static/banner/PUBLICIDAD_PRODE.png" alt="Publicidad"
-                                    style="width: 100%; height: auto; display: block; object-fit: cover;">
+                                {% set pub_idx = loop.index % 4 + 1 %}
+                                <img src="/static/banner/pub{{ pub_idx }}.png" alt="Publicidad"
+                                    style="width: 100%; height: auto; display: block; object-fit: cover;"
+                                    onerror="this.src='/static/banner/PUBLICIDAD_PRODE.png'">
                             </div>
                             {% endif %}
                         </div>
@@ -628,8 +708,9 @@
                         <!-- Extra standalone banner card to fill the grid -->
                         <div class="group-container"
                             style="border-top: 5px solid #102a68; padding: 0; display: flex; align-items: stretch; justify-content: center; overflow: hidden;">
-                            <img src="/static/banner/PUBLICIDAD_PRODE.png" alt="Publicidad"
-                                style="width: 100%; height: 100%; object-fit: cover;">
+                            <img src="/static/banner/pub4.png" alt="Publicidad"
+                                style="width: 100%; height: 100%; object-fit: cover;"
+                                onerror="this.src='/static/banner/PUBLICIDAD_PRODE.png'">
                         </div>
 
                     </div>
@@ -639,7 +720,7 @@
                 {% for tab_name, phase_keys in [
                 ('dieciseisavos', ['Dieciseisavos']),
                 ('octavos', ['Octavos', 'Cuartos']),
-                ('finales', ['Semifinales', 'Final'])
+                ('finales', ['Semifinales', 'Tercer Puesto', 'Final'])
                 ] %}
                 <div id="tab-{{ tab_name }}" class="phase-tab-content" style="display: none;">
                     {% set active_key = 'Dieciseisavos' if tab_name == 'dieciseisavos' else ('Octavos' if tab_name ==
@@ -654,15 +735,34 @@
 
                             {% for p in knockout_por_fase[phase_key] %}
                             {% set is_locked = p.id in partidos_cerrados %}
-                            <div
-                                style="text-align: center; color: #102a68; font-weight: 800; font-size: 0.95rem; margin-bottom: 5px; margin-top: 15px; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; justify-content: center; gap: 10px;">
-                                <span>📌 {{ phase_key }}</span>
-                                {% if is_locked %}
-                                <span
-                                    style="background-color: #dc3545; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-transform: none; letter-spacing: 0;">🔒
-                                    FINALIZADO</span>
-                                {% endif %}
-                            </div>
+                            
+                            {# Determinar la fase correcta para el bloqueo dinámico #}
+                            {% set phase_for_lock = 'Semis' if 'Semifinal' in p.phase else ('Finales' if ('Final' in p.phase or 'Tercer' in p.phase) else ('Cuartos' if 'Cuartos' in p.phase else ('Octavos' if 'Octavos' in p.phase else 'Dieciseisavos'))) %}
+                            {% set is_active_match = estados_fases.get(phase_for_lock, False) %}
+
+                            {% if phase_key == 'Semifinales' %}
+                                <div style="text-align: center; color: #fff; background: linear-gradient(90deg, #e65c00, #F9D423); font-weight: 900; font-size: 1.1rem; padding: 8px; border-radius: 8px; margin-bottom: 10px; margin-top: 15px; text-transform: uppercase; letter-spacing: 2px; box-shadow: 0 4px 10px rgba(230, 92, 0, 0.4); animation: pulse 2s infinite;">
+                                    🔥 LA GRAN SEMIFINAL 🔥
+                                </div>
+                            {% elif phase_key == 'Tercer Puesto' %}
+                                <div style="text-align: center; color: #fff; background: linear-gradient(90deg, #cd7f32, #8b4513); font-weight: 900; font-size: 1.1rem; padding: 8px; border-radius: 8px; margin-bottom: 10px; margin-top: 15px; text-transform: uppercase; letter-spacing: 2px; box-shadow: 0 4px 10px rgba(205, 127, 50, 0.4);">
+                                    🥉 BATALLA POR EL BRONCE 🥉
+                                </div>
+                            {% elif phase_key == 'Final' %}
+                                <div style="text-align: center; color: #fff; background: linear-gradient(90deg, #d4af37, #ffdf00); font-weight: 900; font-size: 1.3rem; padding: 12px; border-radius: 8px; margin-bottom: 10px; margin-top: 15px; text-transform: uppercase; letter-spacing: 3px; box-shadow: 0 4px 15px rgba(212, 175, 55, 0.6); animation: pulse 1.5s infinite; text-shadow: 1px 1px 2px rgba(0,0,0,0.3);">
+                                    🏆 LA GRAN FINAL DEL MUNDO 🏆
+                                </div>
+                            {% else %}
+                                <div style="text-align: center; color: #102a68; font-weight: 800; font-size: 0.95rem; margin-bottom: 5px; margin-top: 15px; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                                    <span>📌 {{ phase_key }}</span>
+                                </div>
+                            {% endif %}
+                            
+                            {% if is_locked or not is_active_match %}
+                                <div style="text-align: center; margin-bottom: 10px; margin-top: -5px;">
+                                    <span style="background-color: #dc3545; color: white; padding: 3px 10px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: inline-block;">🔒 FINALIZADO</span>
+                                </div>
+                            {% endif %}
                             <form class="match-card-form" hx-post="/predict/{{ p.id }}" hx-trigger="submit"
                                 hx-target="#status-{{ p.id }}" hx-swap="innerHTML">
                                 <div class="match-card" id="card_{{ p.id }}">
@@ -685,19 +785,21 @@
                                         </div>
                                     </div>
 
+                                    {% set g1_key = p.id ~ "_g1" %}
+                                    {% set g2_key = p.id ~ "_g2" %}
+                                    {% set penales_key = p.id ~ "_penales" %}
+
+                                    {% if not is_locked and is_active_match %}
                                     <div class="predict-inputs">
-                                        {% set g1_key = p.id ~ "_g1" %}
-                                        {% set g2_key = p.id ~ "_g2" %}
                                         <input type="number" id="{{ p.id }}_g1" name="g1" min="0" max="25"
-                                            placeholder="-" value="{{ datos.get(g1_key, '') }}" {% if not is_active or
-                                            is_locked %}disabled{% endif %} oninput="checkEmpate('{{ p.id }}')">
+                                            placeholder="-" value="{{ datos.get(g1_key, '') }}" {% if not is_active_match
+                                            %}disabled{% endif %} oninput="checkEmpate('{{ p.id }}')">
                                         <span>-</span>
                                         <input type="number" id="{{ p.id }}_g2" name="g2" min="0" max="25"
-                                            placeholder="-" value="{{ datos.get(g2_key, '') }}" {% if not is_active or
-                                            is_locked %}disabled{% endif %} oninput="checkEmpate('{{ p.id }}')">
+                                            placeholder="-" value="{{ datos.get(g2_key, '') }}" {% if not is_active_match
+                                            %}disabled{% endif %} oninput="checkEmpate('{{ p.id }}')">
                                     </div>
 
-                                    {% set penales_key = p.id ~ "_penales" %}
                                     {% set is_empate_previo = datos.get(g1_key, '') != '' and datos.get(g1_key, '') ==
                                     datos.get(g2_key, '') %}
                                     <div class="penalties-section" id="penalties_{{ p.id }}"
@@ -706,26 +808,41 @@
                                             <span class="team-flag">{{ p.bandera1 }}</span>
                                             <input type="radio" name="penales" value="{{ p.t1 }}"
                                                 class="penalty-checkbox" {% if datos.get(penales_key)==p.t1 %}checked{%
-                                                endif %} {% if not is_active or is_locked %}disabled{% endif %}>
+                                                endif %} {% if not is_active_match %}disabled{% endif %}>
                                         </div>
                                         <div class="penalties-title">GANA EN<br>PENALES</div>
                                         <div class="penalty-team">
                                             <input type="radio" name="penales" value="{{ p.t2 }}"
                                                 class="penalty-checkbox" {% if datos.get(penales_key)==p.t2 %}checked{%
-                                                endif %} {% if not is_active or is_locked %}disabled{% endif %}>
+                                                endif %} {% if not is_active_match %}disabled{% endif %}>
                                             <span class="team-flag">{{ p.bandera2 }}</span>
                                         </div>
                                     </div>
+                                    {% endif %}
 
-                                    {% if is_locked %}
+                                    {% if is_locked or not is_active_match %}
                                     {% set off_data = resultados_dict.get(p.id, {}) %}
+                                    {% set is_finalized = off_data.get('g1') is not none %}
                                     <div
-                                        style="background-color: #f8d7da; color: #721c24; padding: 10px; border-radius: 8px; text-align: center; margin-top: 15px; font-weight: bold; border: 1px solid #f5c6cb;">
-                                        🔒 EVENTO FINALIZADO<br>
-                                        <span style="font-size: 1.1rem; color: #102a68;">Resultado Oficial: {{
-                                            off_data.get('g1', '-') }} - {{ off_data.get('g2', '-') }}{% if
-                                            off_data.get('winner') %} (P: {{ off_data.get('winner') }}){% endif
-                                            %}</span>
+                                        style="background-color: {% if is_finalized %}#e2e8f0{% else %}#fffaf0{% endif %}; color: {% if is_finalized %}#2d3748{% else %}#dd6b20{% endif %}; padding: 10px; border-radius: 8px; text-align: center; margin-top: 15px; font-weight: bold; border: 1px solid {% if is_finalized %}#cbd5e0{% else %}#feebc8{% endif %};">
+                                        {% if is_finalized %}🏁 FINALIZADO{% else %}🔒 EN JUEGO - ESPERANDO RESULTADOS{% endif %}<br>
+                                        
+                                        <div style="display: flex; justify-content: space-around; align-items: center; font-size: 0.9rem; margin-top: 8px; padding: 8px 0; border-top: 1px solid rgba(0,0,0,0.1); border-bottom: 1px solid rgba(0,0,0,0.1); background-color: rgba(255,255,255,0.5); border-radius: 4px;">
+                                            <div style="flex: 1; text-align: center; border-right: 1px solid rgba(0,0,0,0.1);">
+                                                <span style="color: #4a5568; font-size: 0.70rem; display: block; text-transform: uppercase;">Tu Pronóstico 🍀</span>
+                                                <span style="color: #102a68; font-size: 1.2rem;">{{ datos.get(g1_key, '-') }} - {{ datos.get(g2_key, '-') }}</span>
+                                                {% if datos.get(penales_key) %}
+                                                <br><span style="font-size: 0.7rem; color: #4a5568;">(P: {{ datos.get(penales_key) }})</span>
+                                                {% endif %}
+                                            </div>
+                                            <div style="flex: 1; text-align: center;">
+                                                <span style="color: #4a5568; font-size: 0.70rem; display: block; text-transform: uppercase;">Resultado Oficial ⚽</span>
+                                                <span style="color: #102a68; font-size: 1.2rem;">{{ off_data.get('g1', '-') }} - {{ off_data.get('g2', '-') }}</span>
+                                                {% if off_data.get('winner') %}
+                                                <br><span style="font-size: 0.7rem; color: #4a5568;">(P: {{ off_data.get('winner') }})</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
 
                                         {% if p.id in puntos_por_partido %}
                                         {% set pts_data = puntos_por_partido[p.id] %}

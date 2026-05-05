@@ -96,6 +96,36 @@ async def home(request: Request, db: Session = Depends(get_db)):
     conf_cerrados = db.query(ConfigGlobal).filter(ConfigGlobal.clave == "partidos_cerrados").first()
     partidos_cerrados = json.loads(conf_cerrados.valor) if conf_cerrados else []
 
+    conf_torneo = db.query(ConfigGlobal).filter(ConfigGlobal.clave == "torneo_finalizado").first()
+    torneo_finalizado = json.loads(conf_torneo.valor) if conf_torneo else False
+
+    # Datos para reclamar premios si el torneo terminó
+    from database.models import Premio, ReclamoPremio
+    reclamo_actual = None
+    premios_elegibles = []
+    
+    sidebar = get_sidebar_data(username, db)
+    posicion_actual = sidebar["posicion"]
+    
+    if torneo_finalizado:
+        reclamo_actual = db.query(ReclamoPremio).filter(ReclamoPremio.username == username).first()
+        if reclamo_actual:
+            # Conseguimos el objeto de premio que reclamo
+            premio_obj = db.query(Premio).filter(Premio.id == reclamo_actual.premio_id).first()
+            if premio_obj:
+                setattr(reclamo_actual, 'premio_obj', premio_obj)
+            else:
+                class DummyPremio:
+                    nombre = "Premio Eliminado por el Admin"
+                setattr(reclamo_actual, 'premio_obj', DummyPremio())
+        else:
+            # Buscar premios elegibles buscando coincidencia exacta de orden vs posicion
+            premios_elegibles = db.query(Premio).filter(Premio.orden == posicion_actual).all()
+            
+            # Si no hay premios específicos asignados a esta posición, darle premios de consuelo (orden == 0)
+            if not premios_elegibles:
+                premios_elegibles = db.query(Premio).filter(Premio.orden == 0).all()
+
     # Agrupar partidos KNOCKOUT por fase
     # Extraer asignaciones de equipos para knockout
     conf_asig = db.query(ConfigGlobal).filter(ConfigGlobal.clave == "knockout_asignaciones").first()
@@ -195,7 +225,10 @@ async def home(request: Request, db: Session = Depends(get_db)):
         "datos": datos_actuales,
         "resultados_dict": resultados_dict,
         "puntos_por_partido": puntos_por_partido,
-        "sidebar_data": get_sidebar_data(username, db)
+        "sidebar_data": sidebar,
+        "torneo_finalizado": torneo_finalizado,
+        "reclamo_actual": reclamo_actual,
+        "premios_elegibles": premios_elegibles
     })
 
 @router.post("/predict/{match_id}", response_class=HTMLResponse)
@@ -208,20 +241,56 @@ async def predict_match(
     db: Session = Depends(get_db)
 ):
     """Guarda la predicción parcial del usuario vía HTMX en SQLite."""
+    import json
+    
     username = get_current_user(request)
     if not username:
         return f'<span style="color: red; font-size: 0.85rem;">⚠️ No autenticado</span>'
 
-    # Verificar si el partido está cerrado administrativamente
+    # 1. Verificar si el partido está cerrado administrativamente (bloqueo individual)
     from database.models import ConfigGlobal
     conf_cerrados = db.query(ConfigGlobal).filter(ConfigGlobal.clave == "partidos_cerrados").first()
     partidos_cerrados = json.loads(conf_cerrados.valor) if conf_cerrados else []
     
     if match_id in partidos_cerrados:
-        return f'<span style="color: #dc3545; font-size: 0.85rem; font-weight: bold;">🔒 Evento Finalizado</span>'
+        return f'<span style="color: #dc3545; font-size: 0.85rem; font-weight: bold;">🔒 Evento Finalizado. Se conservaron tus datos previos.</span>'
+
+    # 2. Verificar si la FASE completa está habilitada
+    from core.scoring import ScoringEngine
+    engine = ScoringEngine()
+    phase_internal = engine.match_phases.get(match_id, 'group')
+    
+    # Mapa de fases internas a nombres de configuración
+    PHASE_MAP = {
+        'group': 'Grupos',
+        'round_of_32': 'Dieciseisavos',
+        'round_of_16': 'Octavos',
+        'quarter': 'Cuartos',
+        'semi': 'Semis',
+        'third_place': 'Finales',
+        'final': 'Finales'
+    }
+    phase_display = PHASE_MAP.get(phase_internal, 'Grupos')
+    
+    conf_fases = db.query(ConfigGlobal).filter(ConfigGlobal.clave == "fases_estado").first()
+    fases_estado = json.loads(conf_fases.valor) if conf_fases else {}
+    
+    # Si la fase no está en el dict, asumimos que está cerrada por seguridad (excepto Grupos que es la inicial)
+    fase_activa = fases_estado.get(phase_display, True if phase_display == "Grupos" else False)
+    
+    if not fase_activa:
+        return f'<span style="color: #dc3545; font-size: 0.85rem; font-weight: bold;">🔒 Fase {phase_display} Cerrada. Se conservaron tus datos previos.</span>'
 
     # Validación simple: si ambos tienen valor, procesamos el guardado en la DB
-    if g1 is not None and g1.strip() != "" and g2 is not None and g2.strip() != "":
+    if g1 is not None and str(g1).strip() != "" and g2 is not None and str(g2).strip() != "":
+        try:
+            val_g1 = int(g1)
+            val_g2 = int(g2)
+            if val_g1 < 0 or val_g2 < 0:
+                raise ValueError("Numbers must be positive")
+        except ValueError:
+            return f'<span style="color: #dc3545; font-size: 0.85rem; font-weight: bold;">❌ Error: Ingresa solo números válidos.</span>'
+
         # Buscar usuario en DB
         pred = db.query(Prediccion).filter(Prediccion.username == username).first()
         if not pred:
@@ -231,8 +300,8 @@ async def predict_match(
             
         # Parsear JSON existente
         datos = json.loads(pred.datos) if pred.datos else {}
-        datos[f"{match_id}_g1"] = int(g1)
-        datos[f"{match_id}_g2"] = int(g2)
+        datos[f"{match_id}_g1"] = val_g1
+        datos[f"{match_id}_g2"] = val_g2
         if penales:
             datos[f"{match_id}_penales"] = penales
         else:
@@ -242,12 +311,53 @@ async def predict_match(
         pred.datos = json.dumps(datos)
         db.commit()
         
-        msg = f'<span style="color: #28a745; font-size: 0.85rem; font-weight: bold;">✅ Guardado {g1}-{g2}</span>'
-        if int(g1) == int(g2) and penales:
+        msg = f'<span style="color: #28a745; font-size: 0.85rem; font-weight: bold;">✅ Guardado {val_g1}-{val_g2}</span>'
+        if val_g1 == val_g2 and penales:
             msg += f'<br><span style="color: #102a68; font-size: 0.8rem;">(Penales: {penales})</span>'
         return msg
     
     return f'<span style="color: #6c757d; font-size: 0.85rem;">⏳ Pendiente</span>'
+
+@router.post("/reclamar_premio", response_class=HTMLResponse)
+async def reclamar_premio(
+    request: Request,
+    premio_id: int = Form(...),
+    db: Session = Depends(get_db)
+):
+    from database.models import ReclamoPremio, Premio, ConfigGlobal
+    username = get_current_user(request)
+    if not username:
+        return "<div style='color:red;'>⚠️ No autenticado</div>"
+        
+    conf_torneo = db.query(ConfigGlobal).filter(ConfigGlobal.clave == "torneo_finalizado").first()
+    torneo_finalizado = json.loads(conf_torneo.valor) if conf_torneo else False
+    if not torneo_finalizado:
+        return "<div style='color:red;'>⚠️ El torneo aún no ha finalizado.</div>"
+        
+    existente = db.query(ReclamoPremio).filter(ReclamoPremio.username == username).first()
+    if existente:
+        return "<div style='color:red;'>⚠️ Ya has elegido un premio.</div>"
+        
+    nuevo_reclamo = ReclamoPremio(
+        username=username,
+        premio_id=premio_id,
+        datos_contacto="Sistema"
+    )
+    db.add(nuevo_reclamo)
+    db.commit()
+    
+    return '''
+        <div style="background-color: #d4edda; color: #155724; padding: 20px; border-radius: 12px; text-align: center; border: 2px solid #28a745; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <div style="font-size: 3rem; margin-bottom: 10px;">🏆🎉🚚</div>
+            <h3 style="margin-top: 0; color: #155724;">¡Felicitaciones y Gracias por Jugar!</h3>
+            <p style="font-size: 1.1rem; font-weight: bold;">Has seleccionado tu premio con éxito.</p>
+            <p>Tus datos han sido registrados. En los próximos <strong>30 días</strong> nos pondremos en contacto contigo para coordinar la entrega de tu regalo.</p>
+            <div style="margin-top: 15px; font-size: 0.9em; font-style: italic; color: #0f5132;">
+                ¡Mucha suerte en la próxima edición! ⚽🙌
+            </div>
+        </div>
+        <script>setTimeout(() => window.location.reload(), 5000);</script>
+    '''
 
 @router.get("/fixture", response_class=HTMLResponse)
 async def ver_fixture(request: Request, db: Session = Depends(get_db)):
@@ -378,14 +488,17 @@ async def ver_ranking(request: Request, db: Session = Depends(get_db)):
         return RedirectResponse(url="/login", status_code=303)
         
     # Extraer todos los usuarios ordenados por puntos descendente (excluyendo admins si se desea, aquí los metemos todos)
-    from database.models import Usuario
+    from database.models import Usuario, Premio
     usuarios_ordenados = db.query(Usuario).order_by(Usuario.puntos_totales.desc()).all()
+    
+    premios = db.query(Premio).order_by(Premio.orden.asc()).all()
     
     return templates.TemplateResponse("ranking.html", {
         "request": request,
         "username": username,
         "usuarios": usuarios_ordenados,
-        "sidebar_data": get_sidebar_data(username, db)
+        "sidebar_data": get_sidebar_data(username, db),
+        "premios": premios
     })
 
 @router.get("/reglas", response_class=HTMLResponse)
@@ -395,9 +508,15 @@ async def ver_reglas(request: Request, db: Session = Depends(get_db)):
     if not username:
         return RedirectResponse(url="/login", status_code=303)
         
+    from database.models import Usuario, Premio
+    usuario = db.query(Usuario).filter(Usuario.username == username).first()
+    premios = db.query(Premio).order_by(Premio.orden.asc()).all()
+        
     return templates.TemplateResponse("reglas.html", {
         "request": request,
         "username": username,
+        "usuario": usuario,
+        "premios": premios,
         "sidebar_data": get_sidebar_data(username, db)
     })
 
@@ -408,10 +527,12 @@ async def ver_perfil(request: Request, db: Session = Depends(get_db)):
     if not username:
         return RedirectResponse(url="/login", status_code=303)
         
-    from database.models import Usuario, DatosOficiales
+    from database.models import Usuario, DatosOficiales, Premio
     from core.scoring import ScoringEngine
     
     usuario = db.query(Usuario).filter(Usuario.username == username).first()
+    
+    premios = db.query(Premio).order_by(Premio.orden.asc()).all()
     
     # Construir historial
     historial = []
@@ -433,20 +554,28 @@ async def ver_perfil(request: Request, db: Session = Depends(get_db)):
         knockout_asignaciones = json.loads(conf_asig.valor) if conf_asig else {}
 
         nombres_partidos = {}
+        total_matches = 0
+        matches_predicted = 0
         
         # Grupos
         for grupo_name, partidos in GRUPOS.items():
             for p in partidos:
+                total_matches += 1
                 nombres_partidos[p['id']] = {"desc": f"{p['t1']} vs {p['t2']}", "fase": "GRUPOS"}
+                if f"{p['id']}_g1" in datos_prediccion and f"{p['id']}_g2" in datos_prediccion:
+                    matches_predicted += 1
         
         # Knockout
         for p in KNOCKOUT:
+            total_matches += 1
             asig = knockout_asignaciones.get(p['id'])
             if asig:
                 desc = f"{asig['t1']} vs {asig['t2']}"
             else:
                 desc = f"TBD ({p.get('desc', p['id'])})"
             nombres_partidos[p['id']] = {"desc": desc, "fase": p.get('phase', 'ELIMINATORIAS').upper()}
+            if f"{p['id']}_g1" in datos_prediccion and f"{p['id']}_g2" in datos_prediccion:
+                matches_predicted += 1
 
         for r in resultados_raw:
             try:
@@ -466,11 +595,35 @@ async def ver_perfil(request: Request, db: Session = Depends(get_db)):
                 })
             except:
                 continue
+    else:
+        # Fallback if no predictions record exists yet
+        total_matches = 0
+        for lista in GRUPOS.values(): total_matches += len(lista)
+        total_matches += len(KNOCKOUT)
+        matches_predicted = 0
+
+    # Identificar el próximo premio por posición
+    posicion_actual = get_sidebar_data(username, db)["posicion"]
+    proximo_premio = None
+    # premios está ordenado por orden asc
+    # buscamos el premio con el "mayor" (peor) orden que sea menor a la posicion actual del usuario, 
+    # o el premio de 1er lugar si todos los premios tienen orden menor.
+    for p in reversed(premios):
+        if p.orden < posicion_actual:
+            proximo_premio = p
+            break
+    
+    if not proximo_premio and premios and posicion_actual > 1:
+        proximo_premio = premios[0]
 
     return templates.TemplateResponse("perfil.html", {
         "request": request,
         "username": username,
         "usuario": usuario,
         "historial": historial,
-        "sidebar_data": get_sidebar_data(username, db)
+        "sidebar_data": get_sidebar_data(username, db),
+        "premios": premios,
+        "total_matches": total_matches,
+        "matches_predicted": matches_predicted,
+        "proximo_premio": proximo_premio
     })
