@@ -13,5 +13,4 @@ ENV/
 *.sqlite3
 *.db
 *.csv
-static/banner/*
 !static/banner/.gitkeep
